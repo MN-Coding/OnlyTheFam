@@ -10,7 +10,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,28 +23,30 @@ import java.time.YearMonth
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomePage() {
-    val name = "John";
+    val name = "John"
+    val scrollState = rememberScrollState()
     Scaffold(
         topBar = { Header() },
     ) {
         Column(
             modifier = Modifier
-                .padding(40.dp, 10.dp)
+                .padding(20.dp, 10.dp)
+                .verticalScroll(scrollState, enabled = true),
         ) {
             FamilyReminderCard()
             Text("Your Calendar", fontWeight= FontWeight.Bold)
-            Calendar(YearMonth.now(), {})
+            Cal()
             Text("Upcoming", fontWeight= FontWeight.Bold)
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
-//                    .padding(10.dp)
                     .fillMaxWidth()
             ) {
-                PreviewCard(modifier = Modifier.weight(2f), "Todos")
+                PreviewCard(modifier = Modifier.weight(1f), "Todos")
                 Spacer(modifier = Modifier.width(16.dp))
-                PreviewCard(modifier = Modifier.weight(3f), "Events")
+                PreviewCard(modifier = Modifier.weight(2f), "Events")
             }
+            Spacer(Modifier.height(100.dp))
         }
     }
 }
@@ -52,7 +56,7 @@ fun FamilyReminderCard() {
     Text("Reminder of the Day", fontWeight= FontWeight.Bold)
     Card(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(10.dp)
             .fillMaxWidth(),
         backgroundColor = MaterialTheme.colors.surface,
         shape = RoundedCornerShape(16.dp),

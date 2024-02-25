@@ -33,7 +33,7 @@ fun Header() {
         title = {
             Text(
                 text = "Welcome Home $name",
-                style = MaterialTheme.typography.h1,
+                style = MaterialTheme.typography.h2,
                 fontSize = 24.sp,
                 color = Color.Black,
             )
@@ -51,7 +51,7 @@ fun Header() {
                         contentDescription = "icon",
                         tint = Blue500,
                         modifier = Modifier
-                            .size(35.dp)
+                            .size(30.dp)
                             .aspectRatio(1f)
                     )
                 }

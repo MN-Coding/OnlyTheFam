@@ -10,6 +10,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CalendarToday
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -89,10 +90,11 @@ fun TodoItem(t: TodoPreview) {
             Text(
                 text = t.name,
                 style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(10.dp, 10.dp)
+                fontSize = 10.sp,
+                modifier = Modifier.padding(5.dp, 5.dp)
             )
         }
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(10.dp))
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -132,27 +134,31 @@ fun formatTime12Hour(localDateTime: LocalDateTime): String {
 @Composable
 fun EventItem(e: EventPreview) {
     Row() {
-        Column() {
-            Text(formatDate(e.date))
+        Column(modifier = Modifier.weight(1f)) {
+            Row() {
+                Icon(Icons.Rounded.CalendarToday, null,modifier = Modifier.size(15.dp))
+                Text(formatDate(e.date),fontSize = 10.sp)
+            }
             Card(
                 backgroundColor = Blue700,
                 contentColor = Color.White,
-                modifier = Modifier
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = e.name,
                     style = MaterialTheme.typography.body1,
+                    fontSize = 10.sp,
                     modifier = Modifier
-                        .padding(10.dp, 10.dp)
+                        .padding(5.dp, 5.dp)
                 )
             }
         }
         Row(
-            modifier = Modifier.weight(1f),
+//            modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.End
         ) {
-            Icon(Icons.Rounded.Timer, null)
-            Text(formatTime12Hour(e.date))
+            Icon(Icons.Rounded.Timer, null, modifier = Modifier.size(15.dp))
+            Text(formatTime12Hour(e.date), fontSize = 10.sp)
         }
     }
     Spacer(modifier = Modifier.height(8.dp))
