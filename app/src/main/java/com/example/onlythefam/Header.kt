@@ -3,7 +3,9 @@ package com.example.onlythefam
 import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Person
@@ -16,6 +18,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.onlythefam.ui.theme.Blue500
@@ -24,12 +27,15 @@ import com.example.onlythefam.ui.theme.Blue500
 fun Header() {
     val name = "John"
     TopAppBar(
+        modifier = Modifier
+            .padding(10.dp, 10.dp),
+        elevation = 0.dp,
         title = {
             Text(
-                text = "Welcome  Home  $name",
+                text = "Welcome Home $name",
                 style = MaterialTheme.typography.h1,
                 fontSize = 24.sp,
-                color = Color.Black
+                color = Color.Black,
             )
         },
         actions = {
@@ -43,7 +49,10 @@ fun Header() {
                     Icon(
                         Icons.Rounded.Person,
                         contentDescription = "icon",
-                        tint = Blue500
+                        tint = Blue500,
+                        modifier = Modifier
+                            .size(35.dp)
+                            .aspectRatio(1f)
                     )
                 }
             }

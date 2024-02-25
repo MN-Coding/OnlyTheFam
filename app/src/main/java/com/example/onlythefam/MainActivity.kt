@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,35 +29,16 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    HomePage(onButtonClick = {
-                        Log.w(TAG,"clicked")
-                    })
+                    App()
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-    val db = Firebase.firestore
-//    Log.w(TAG, "Hello")
-//    db.collection("users").get()
-//        .addOnSuccessListener { result ->
-//            for (document in result) {
-//                Log.d(TAG, "${document.id} => ${document.data}")
-//            }
-//        }
-//        .addOnFailureListener { exception ->
-//            Log.w(TAG, "Error getting documents.", exception)
-//        }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     OnlyTheFamTheme {
-        Greeting("Android")
     }
 }
