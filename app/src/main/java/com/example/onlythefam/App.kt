@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.onlythefam.ui.theme.Blue500
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun Todos() {
@@ -56,7 +57,7 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NavigationGraph(navController: NavHostController) {
+fun NavigationGraph(navController: NavHostController, auth: FirebaseAuth) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
             HomePage()
@@ -96,7 +97,7 @@ fun BottomNavigation(navController: NavController) {
         val currentRoute = navBackStackEntry?.destination?.route
         items.forEach { item ->
             BottomNavigationItem(
-                icon = { Icon(item.icon, item.title)},
+                icon = { Icon(item.icon, item.title) },
                 selectedContentColor = Color.Black,
                 unselectedContentColor = Color.Black.copy(0.4f),
                 alwaysShowLabel = false,
@@ -122,25 +123,23 @@ fun BottomNavigation(navController: NavController) {
 @Composable
 fun App() {
     val navController = rememberNavController()
-    var isLoggedIn by remember { mutableStateOf(false) }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val loginController = rememberNavController()
+    val auth = FirebaseAuth.getInstance()
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // Display login screen if user is not logged in
-//        if (!isLoggedIn) {
-        if (false) {
-            LoginScreen(
-                username = username,
-                password = password,
-                onUsernameChange = { username = it },
-                onPasswordChange = { password = it },
-                onLoginSuccess = { isLoggedIn = true }
-            )
-        } else {
-            Scaffold(
-                bottomBar = { BottomNavigation(navController = navController) }
-            ) {
-                NavigationGraph(navController = navController)
+        NavHost(navController = loginController, startDestination = "login") {
+            composable("login") {
+                LoginScreen(auth, {loginController.navigate("home") }, {loginController.navigate("signup") })
+            }
+            composable("signup") {
+                SignupScreen(auth, {loginController.navigate("home") }, {loginController.navigate("login") })
+            }
+            composable("home") {
+                Scaffold(
+                    bottomBar = { BottomNavigation(navController = navController) }
+                ) {
+                    NavigationGraph(navController = navController, auth)
+                }
             }
         }
     }

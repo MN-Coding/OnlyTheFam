@@ -1,43 +1,185 @@
 package com.example.onlythefam
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
-//still need to complete login feature
 @Composable
-fun LoginScreen(username: String,
-                password: String,
-                onUsernameChange: (String) -> Unit,
-                onPasswordChange: (String) -> Unit,
-                onLoginSuccess: () -> Unit) {
+fun LoginScreen(auth: FirebaseAuth, onlogin: () -> Unit, gotosignup: () -> Unit) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    val scaffoldState = rememberScaffoldState()
+    val coroutineScope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        OutlinedTextField(
-            value = username,
-            onValueChange = { onUsernameChange(it) },
-            label = { Text("Username") },
-            modifier = Modifier.padding(16.dp)
-        )
-        OutlinedTextField(
-            value = password,
-            onValueChange = { onPasswordChange(it) },
-            label = { Text("Password") },
-            modifier = Modifier.padding(16.dp)
-        )
-        Button(
-            onClick = { onLoginSuccess() },
-            modifier = Modifier.padding(16.dp)
+    Scaffold(scaffoldState = scaffoldState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Login")
+            Column(
+                modifier = Modifier
+                    .padding(30.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.logo),
+                    contentDescription = "My Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                )
+            }
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next // Change to ImeAction.Next if you want it to go to the next field
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Go // Change to ImeAction.Next if you want it to go to the next field
+                ),
+                keyboardActions = KeyboardActions(
+                    onGo = { signIn(email, password, scaffoldState, coroutineScope, auth, onlogin) }
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { signIn(email, password, scaffoldState, coroutineScope, auth, onlogin) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Sign In")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                buildAnnotatedString {
+                    append("New User? ")
+                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                        append("Signup")
+                    }
+                },
+                modifier = Modifier.clickable { gotosignup() }
+            )
         }
     }
 }
 
+private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, auth: FirebaseAuth, onlogin: () -> Unit) {
+    coroutineScope.launch {
+        try {
+            val result = auth.signInWithEmailAndPassword(email, password).await()
+            scaffoldState.snackbarHostState.showSnackbar("Sign-in successful")
+            onlogin()
+        } catch (e: Exception) {
+            scaffoldState.snackbarHostState.showSnackbar("Sign-in failed: ${e.message}")
+        }
+    }
+}
+
+@Composable
+fun SignupScreen(auth: FirebaseAuth, onsignup: () -> Unit, gotologin: () -> Unit) {
+    var email by remember { mutableStateOf("") }
+    var dateOfBirth by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    val scaffoldState = rememberScaffoldState()
+    val coroutineScope = rememberCoroutineScope()
+
+    Scaffold(scaffoldState = scaffoldState) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { signUp(email, password, scaffoldState, coroutineScope, auth, onsignup) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Sign Up")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                buildAnnotatedString {
+                    append("Back to ")
+                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
+                        append("Login")
+                    }
+                },
+                modifier = Modifier.clickable { gotologin() }
+            )
+        }
+    }
+}
+
+// need to update for additional user info w new db
+private fun signUp(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, auth: FirebaseAuth, onsignup: () -> Unit) {
+    coroutineScope.launch {
+        try {
+            // Create user account with Firebase Authentication
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            val user = result.user
+            scaffoldState.snackbarHostState.showSnackbar("Sign-up successful")
+            onsignup()
+        } catch (e: Exception) {
+            scaffoldState.snackbarHostState.showSnackbar("Sign-up failed: ${e.message}")
+        }
+    }
+}
