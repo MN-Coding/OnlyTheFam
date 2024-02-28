@@ -20,6 +20,8 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.sql.ResultSet
+import java.sql.SQLException
 
 @Composable
 fun LoginScreen(auth: FirebaseAuth, onlogin: () -> Unit, gotosignup: () -> Unit) {
@@ -98,13 +100,30 @@ fun LoginScreen(auth: FirebaseAuth, onlogin: () -> Unit, gotosignup: () -> Unit)
     }
 }
 
+// update for hashing
 private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, auth: FirebaseAuth, onlogin: () -> Unit) {
     coroutineScope.launch {
         try {
-            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val query = """
+            SELECT COUNT(*) AS count
+            FROM users
+            WHERE email = ? AND password = ?;
+            """.trimIndent()
+            val result = GlobalVariables.db.executeQuery(query, arrayOf(email, password))
+            if (result != null) {
+                if (result.next()) {
+                    val count = result.getInt("count")
+                    if (count < 1) {
+                        throw Exception("Login Unsuccessful.")
+                    }
+                }
+            } else {
+                throw Exception("Database Error.")
+            }
             scaffoldState.snackbarHostState.showSnackbar("Sign-in successful")
             onlogin()
         } catch (e: Exception) {
+            e.printStackTrace()
             scaffoldState.snackbarHostState.showSnackbar("Sign-in failed: ${e.message}")
         }
     }

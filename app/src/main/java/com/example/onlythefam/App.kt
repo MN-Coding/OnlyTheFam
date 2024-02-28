@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -23,8 +22,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.onlythefam.ui.theme.Blue500
 import com.google.firebase.auth.FirebaseAuth
+import java.sql.*
 
 @Composable
 fun Todos() {
@@ -119,6 +118,14 @@ fun BottomNavigation(navController: NavController) {
     }
 }
 
+object GlobalVariables {
+    var db: DatabaseHelper = DatabaseHelper(
+        "jdbc:postgresql://onlythefam-do-user-9272876-0.c.db.ondigitalocean.com:25060/onlythefam",
+        "doadmin",
+        "AVNS_vIBhnnTu7WwLLnJXOz5"
+    )
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {
@@ -142,5 +149,25 @@ fun App() {
                 }
             }
         }
+    }
+}
+
+class DatabaseHelper(private val url: String, private val user: String, private val password: String) {
+
+    fun executeQuery(query: String, params: Array<Any>): ResultSet? {
+        var resultSet: ResultSet? = null
+        var connection: Connection? = null
+
+        try {
+            connection = DriverManager.getConnection(url, user, password)
+            val preparedStatement: PreparedStatement = connection.prepareStatement(query)
+            for (i in params.indices) {
+                preparedStatement.setObject(i + 1, params[i])
+            }
+            resultSet = preparedStatement.executeQuery()
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        return resultSet
     }
 }
