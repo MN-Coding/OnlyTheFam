@@ -35,7 +35,6 @@ fun HomePage() {
         ) {
             FamilyReminderCard()
             Text("Your Calendar", fontWeight= FontWeight.Bold)
-//            Cal()
             Text("Upcoming", fontWeight= FontWeight.Bold)
             Row(
                 horizontalArrangement = Arrangement.Center,

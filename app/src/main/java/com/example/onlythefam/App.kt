@@ -22,7 +22,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.auth.FirebaseAuth
 import java.sql.*
 
 @Composable
@@ -56,7 +55,7 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NavigationGraph(navController: NavHostController, auth: FirebaseAuth) {
+fun NavigationGraph(navController: NavHostController) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
             HomePage()
@@ -131,21 +130,20 @@ object GlobalVariables {
 fun App() {
     val navController = rememberNavController()
     val loginController = rememberNavController()
-    val auth = FirebaseAuth.getInstance()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        NavHost(navController = loginController, startDestination = "login") {
+        NavHost(navController = loginController, startDestination = "home") {
             composable("login") {
-                LoginScreen(auth, {loginController.navigate("home") }, {loginController.navigate("signup") })
+                LoginScreen({loginController.navigate("home") }, {loginController.navigate("signup") })
             }
             composable("signup") {
-                SignupScreen(auth, {loginController.navigate("home") }, {loginController.navigate("login") })
+                SignUpFlow({loginController.navigate("home") }, {loginController.navigate("login") })
             }
             composable("home") {
                 Scaffold(
                     bottomBar = { BottomNavigation(navController = navController) }
                 ) {
-                    NavigationGraph(navController = navController, auth)
+                    NavigationGraph(navController = navController)
                 }
             }
         }
@@ -168,6 +166,27 @@ class DatabaseHelper(private val url: String, private val user: String, private 
         } catch (e: SQLException) {
             e.printStackTrace()
         }
+        connection?.close()
         return resultSet
     }
+
+    fun executeUpdate(query: String, params: Array<Any>): Int {
+        var connection: Connection? = null
+        var ret: Int = -1
+
+        try {
+            connection = DriverManager.getConnection(url, user, password)
+            val preparedStatement: PreparedStatement = connection.prepareStatement(query)
+            for (i in params.indices) {
+                preparedStatement.setObject(i + 1, params[i])
+            }
+            ret = preparedStatement.executeUpdate()
+        } catch (e: SQLException) {
+            e.printStackTrace()
+        }
+        connection?.close()
+        return ret
+    }
+
+
 }

@@ -16,7 +16,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -24,7 +23,7 @@ import java.sql.ResultSet
 import java.sql.SQLException
 
 @Composable
-fun LoginScreen(auth: FirebaseAuth, onlogin: () -> Unit, gotosignup: () -> Unit) {
+fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val scaffoldState = rememberScaffoldState()
@@ -71,7 +70,7 @@ fun LoginScreen(auth: FirebaseAuth, onlogin: () -> Unit, gotosignup: () -> Unit)
                     imeAction = ImeAction.Go // Change to ImeAction.Next if you want it to go to the next field
                 ),
                 keyboardActions = KeyboardActions(
-                    onGo = { signIn(email, password, scaffoldState, coroutineScope, auth, onlogin) }
+                    onGo = { signIn(email, password, scaffoldState, coroutineScope, onlogin) }
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -79,7 +78,7 @@ fun LoginScreen(auth: FirebaseAuth, onlogin: () -> Unit, gotosignup: () -> Unit)
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { signIn(email, password, scaffoldState, coroutineScope, auth, onlogin) },
+                onClick = { signIn(email, password, scaffoldState, coroutineScope, onlogin) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Sign In")
@@ -101,7 +100,7 @@ fun LoginScreen(auth: FirebaseAuth, onlogin: () -> Unit, gotosignup: () -> Unit)
 }
 
 // update for hashing
-private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, auth: FirebaseAuth, onlogin: () -> Unit) {
+private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, onlogin: () -> Unit) {
     coroutineScope.launch {
         try {
             val query = """
@@ -125,80 +124,6 @@ private fun signIn(email: String, password: String, scaffoldState: ScaffoldState
         } catch (e: Exception) {
             e.printStackTrace()
             scaffoldState.snackbarHostState.showSnackbar("Sign-in failed: ${e.message}")
-        }
-    }
-}
-
-@Composable
-fun SignupScreen(auth: FirebaseAuth, onsignup: () -> Unit, gotologin: () -> Unit) {
-    var email by remember { mutableStateOf("") }
-    var dateOfBirth by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    val scaffoldState = rememberScaffoldState()
-    val coroutineScope = rememberCoroutineScope()
-
-    Scaffold(scaffoldState = scaffoldState) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { signUp(email, password, scaffoldState, coroutineScope, auth, onsignup) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Sign Up")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                buildAnnotatedString {
-                    append("Back to ")
-                    withStyle(style = SpanStyle(textDecoration = TextDecoration.Underline)) {
-                        append("Login")
-                    }
-                },
-                modifier = Modifier.clickable { gotologin() }
-            )
-        }
-    }
-}
-
-// need to update for additional user info w new db
-private fun signUp(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, auth: FirebaseAuth, onsignup: () -> Unit) {
-    coroutineScope.launch {
-        try {
-            // Create user account with Firebase Authentication
-            val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val user = result.user
-            scaffoldState.snackbarHostState.showSnackbar("Sign-up successful")
-            onsignup()
-        } catch (e: Exception) {
-            scaffoldState.snackbarHostState.showSnackbar("Sign-up failed: ${e.message}")
         }
     }
 }
