@@ -26,19 +26,20 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="35dp"
-        android:text="New Task"
+        android:text="@string/new_task"
         android:textColor="#FF1976D2"
         android:textColorHighlight="#FFFFFF"
         android:textSize="48sp"
-        android:textStyle="bold|italic" />
+        android:textStyle="bold|italic"
+        />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="120dp"
-        android:text="Task Name :"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="125dp"
+        android:text="@string/task_name"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
@@ -48,19 +49,21 @@
         android:id="@+id/editTextText2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="150dp"
-        android:layout_marginTop="113dp"
+        android:layout_marginStart="150dp"
+        android:layout_marginTop="120dp"
         android:ems="10"
         android:inputType="text"
-        android:text="Enter task description" />
+        android:text="@string/enter_task_description"
+        android:background="@drawable/border"
+        android:textSize="15sp"/>
 
     <TextView
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="170dp"
-        android:text="Assigned to :"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="185dp"
+        android:text="@string/assigned_to"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
@@ -70,18 +73,19 @@
         android:id="@+id/spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="150dp"
-        android:layout_marginTop="170dp"
+        android:layout_marginStart="150dp"
+        android:layout_marginTop="185dp"
         android:backgroundTint="#FF1976D2"
-        android:backgroundTintMode="add" />
+        android:backgroundTintMode="add"
+        android:textSize="15sp"/>
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="220dp"
-        android:text="Event :"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="245dp"
+        android:text="@string/event"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
@@ -91,18 +95,20 @@
         android:id="@+id/spinner2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="150dp"
-        android:layout_marginTop="220dp"
+        android:layout_marginStart="150dp"
+        android:layout_marginTop="245dp"
         android:backgroundTint="#FF1976D2"
-        android:backgroundTintMode="add" />
+        android:backgroundTintMode="add"
+        android:textSize="15sp"
+        />
 
     <TextView
         android:id="@+id/textView5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="270dp"
-        android:text="Budget :          $"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="305dp"
+        android:text="Budget:          $"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
@@ -112,19 +118,22 @@
         android:id="@+id/editTextText3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="150dp"
-        android:layout_marginTop="263dp"
+        android:layout_marginStart="150dp"
+        android:layout_marginTop="298dp"
         android:ems="10"
         android:inputType="text"
-        android:text="Enter amount" />
+        android:text="@string/enter_amount"
+        android:background="@drawable/border"
+        android:textSize="15sp"
+        />
 
     <TextView
         android:id="@+id/textView6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="320dp"
-        android:text="Deadline :"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="365dp"
+        android:text="@string/deadline"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
@@ -134,9 +143,9 @@
         android:id="@+id/textView7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="370dp"
-        android:text="Reminder? :"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="425dp"
+        android:text="@string/reminder"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
@@ -147,7 +156,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="150dp"
-        android:layout_marginTop="370dp"
+        android:layout_marginTop="425dp"
         android:checked="true"
         android:showText="false"
         android:splitTrack="false"
@@ -160,36 +169,36 @@
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="420dp"
-        android:text="Notes :"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="485dp"
+        android:text="@string/notes"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
         android:textStyle="bold" />
 
+    <EditText
+        android:id="@+id/editTextTextMultiLine2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="150dp"
+        android:layout_marginTop="485dp"
+        android:background="@drawable/border"
+        android:ems="10"
+        android:gravity="start|top"
+        android:inputType="textMultiLine"
+        android:textSize="15sp"/>
+
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="150dp"
-        android:layout_marginTop="470dp"
+        android:layout_marginStart="130dp"
+        android:layout_marginTop="570dp"
+        android:background="@drawable/rounded_corner"
         android:backgroundTint="#1976D2"
-        android:text="Schedule Task" />
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/outlined_text_input_layout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="150dp"
-            android:layout_marginTop="410dp"
-            android:hint="Additional comments" />
-    </com.google.android.material.textfield.TextInputLayout>
-
+        android:text="@string/schedule_task"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
 
 </RelativeLayout>

@@ -2,4 +2,16 @@
     <string name="app_name">OnlyTheFam</string>
     <string name="welcome_message">Welcome  Home</string>
     <string name="start_button_label">Start</string>
+    <string name="schedule_task">Schedule Task</string>
+    <string name="ggggg">ggggg</string>
+    <string name="new_task">New Task</string>
+    <string name="task_name">Task Name :</string>
+    <string name="enter_task_description">Enter task description</string>
+    <string name="assigned_to">Assigned to :</string>
+    <string name="event">Event :</string>
+    <string name="budget">Budget : $</string>
+    <string name="enter_amount">Enter amount</string>
+    <string name="deadline">Deadline :</string>
+    <string name="reminder">Reminder? :</string>
+    <string name="notes">Notes :</string>
 </resources>
