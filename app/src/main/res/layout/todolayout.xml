@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_centerInParent="true"
-    android:background="#FFFFFFFF"
-    android:backgroundTint="#FFFFFFFF">
+    android:background="@drawable/customborder">
 
     <ImageButton
         android:id="@+id/imageButton2"
@@ -36,20 +36,20 @@
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="120dp"
         android:text="Task Name :"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginTop="120dp"
-        android:layout_marginLeft="10dp"/>
+        android:textStyle="bold" />
 
     <EditText
         android:id="@+id/editTextText2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="110dp"
         android:layout_marginLeft="150dp"
+        android:layout_marginTop="113dp"
         android:ems="10"
         android:inputType="text"
         android:text="Enter task description" />
@@ -58,83 +58,138 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="170dp"
         android:text="Assigned to :"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
-        android:textStyle="bold"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="150dp"
         android:layout_marginTop="170dp"
-        android:layout_marginLeft="10dp"/>
+        android:backgroundTint="#FF1976D2"
+        android:backgroundTintMode="add" />
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="220dp"
         android:text="Event :"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
-        android:textStyle="bold"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinner2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="150dp"
         android:layout_marginTop="220dp"
-        android:layout_marginLeft="10dp"/>
+        android:backgroundTint="#FF1976D2"
+        android:backgroundTintMode="add" />
 
     <TextView
         android:id="@+id/textView5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Budget :"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="270dp"
+        android:text="Budget :          $"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginTop="270dp"
-        android:layout_marginLeft="10dp"/>
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/editTextText3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="150dp"
+        android:layout_marginTop="263dp"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Enter amount" />
 
     <TextView
         android:id="@+id/textView6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="320dp"
         android:text="Deadline :"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginTop="320dp"
-        android:layout_marginLeft="10dp"/>
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/textView7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Set reminder? :"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="370dp"
+        android:text="Reminder? :"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
-        android:textStyle="bold"
+        android:textStyle="bold" />
+
+    <Switch
+        android:id="@+id/switch1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="150dp"
         android:layout_marginTop="370dp"
-        android:layout_marginLeft="10dp"/>
+        android:checked="true"
+        android:showText="false"
+        android:splitTrack="false"
+        android:textOff="OFF"
+        android:textOn="ON"
+        android:textStyle="bold"
+        android:thumbTint="#FF1976D2" />
 
     <TextView
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="420dp"
         android:text="Notes :"
         android:textAlignment="textStart"
         android:textColor="#000000"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginTop="420dp"
-        android:layout_marginLeft="10dp"/>
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Schedule Task"
+        android:layout_marginLeft="150dp"
         android:layout_marginTop="470dp"
-        android:layout_marginLeft="10dp"/>
+        android:backgroundTint="#1976D2"
+        android:text="Schedule Task" />
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/outlined_text_input_layout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="150dp"
+            android:layout_marginTop="410dp"
+            android:hint="Additional comments" />
+    </com.google.android.material.textfield.TextInputLayout>
 
 
 </RelativeLayout>
