@@ -19,14 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import java.time.YearMonth
+import androidx.navigation.NavHostController
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomePage() {
+fun HomePage(navController: NavHostController) {
     val name = "John"
     val scrollState = rememberScrollState()
     Scaffold(
-        topBar = { Header() },
+        topBar = { Header(navController) },
     ) {
         Column(
             modifier = Modifier

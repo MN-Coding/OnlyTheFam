@@ -58,7 +58,7 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
 fun NavigationGraph(navController: NavHostController) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
-            HomePage()
+            HomePage(navController)
         }
         composable(BottomNavItem.Todos.screen_route) {
             Todos()
@@ -72,6 +72,9 @@ fun NavigationGraph(navController: NavHostController) {
         composable(BottomNavItem.Family.screen_route) {
             Family()
         }
+        composable("profileSettings"){
+            SettingsPage(onGoBack = {navController.popBackStack()})
+        }
     }
 }
 
@@ -84,35 +87,41 @@ fun BottomNavigation(navController: NavController) {
         BottomNavItem.Events,
         BottomNavItem.Family
     )
-    BottomNavigation(
-        backgroundColor = MaterialTheme.colors.background,
-        modifier = Modifier
-            .padding(start = 40.dp, end = 40.dp, bottom = 40.dp)
-            .border(BorderStroke(1.dp, Color.LightGray), RoundedCornerShape(16.dp)),
-        elevation = 0.dp
-    ) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
-        items.forEach { item ->
-            BottomNavigationItem(
-                icon = { Icon(item.icon, item.title) },
-                selectedContentColor = Color.Black,
-                unselectedContentColor = Color.Black.copy(0.4f),
-                alwaysShowLabel = false,
-                selected = currentRoute == item.screen_route,
-                onClick = {
-                    navController.navigate(item.screen_route) {
+    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family")
 
-                        navController.graph.startDestinationRoute?.let { screen_route ->
-                            popUpTo(screen_route) {
-                                saveState = true
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val showBottomNav = currentRoute in bottomNavRoutes
+
+    if (showBottomNav) {
+        BottomNavigation(
+            backgroundColor = MaterialTheme.colors.background,
+            modifier = Modifier
+                .padding(start = 40.dp, end = 40.dp, bottom = 40.dp)
+                .border(BorderStroke(1.dp, Color.LightGray), RoundedCornerShape(16.dp)),
+            elevation = 0.dp
+        ) {
+            items.forEach { item ->
+                BottomNavigationItem(
+                    icon = { Icon(item.icon, item.title) },
+                    selectedContentColor = Color.Black,
+                    unselectedContentColor = Color.Black.copy(0.4f),
+                    alwaysShowLabel = false,
+                    selected = currentRoute == item.screen_route,
+                    onClick = {
+                        navController.navigate(item.screen_route) {
+
+                            navController.graph.startDestinationRoute?.let { screen_route ->
+                                popUpTo(screen_route) {
+                                    saveState = true
+                                }
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
