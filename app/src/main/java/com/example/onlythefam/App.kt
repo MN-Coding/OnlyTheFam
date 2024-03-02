@@ -4,8 +4,11 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -30,9 +33,11 @@ fun Todos() {
 
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Events() {
-    Text("Events")
+    EventsPage()
+    //Text("Events")
 }
 
 @Composable
@@ -40,9 +45,11 @@ fun Family() {
     Text("Family")
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Add() {
-    Text("Add")
+    AddEvent()
+    //Text("Add")
 }
 
 sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val title: String) {
