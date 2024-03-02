@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import android.app.Activity
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -41,8 +42,15 @@ import androidx.compose.ui.platform.LocalContext
 import java.time.format.DateTimeFormatter
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.Search
 import java.util.*
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -57,10 +65,32 @@ fun AddEvent() {
     var description by remember { mutableStateOf("") }
     var shareWith by remember { mutableStateOf("") }
 
+    // Initialize Places if not already done
+    if (!Places.isInitialized()) {
+        Places.initialize(context, context.getString(R.string.google_maps_key))
+    }
+
+    val fields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS)
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val place = Autocomplete.getPlaceFromIntent(result.data!!)
+            location = place.address ?: ""
+        }
+    }
+
+    // Open Google Places Autocomplete
+    fun openPlacesAutocomplete() {
+        val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
+            .build(context)
+        launcher.launch(intent)
+    }
+
     fun updateStartTime(year: Int, month: Int, day: Int, hour: Int, minute: Int) {
         startTime = LocalDateTime.of(year, month + 1, day, hour, minute)
     }
 
+    // Show day + time picker
     fun showDateTimePicker() {
         val currentDateTime = Calendar.getInstance()
         val startYear = currentDateTime.get(Calendar.YEAR)
@@ -137,7 +167,13 @@ fun AddEvent() {
             OutlinedTextField(
                 value = location,
                 onValueChange = { location = it },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,  // Location is read-only. To edit have to click magnifying glass
+                trailingIcon = {
+                    IconButton(onClick = { openPlacesAutocomplete() }) {
+                        Icon(Icons.Filled.Search, contentDescription = "Search Location")
+                    }
+                }
             )
 
             Spacer(Modifier.height(5.dp))
