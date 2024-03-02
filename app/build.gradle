@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.example.onlythefam'
-    compileSdk 32
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.example.onlythefam"
         minSdk 21
-        targetSdk 32
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -43,6 +43,10 @@ android {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.1'
     }
 }
 
