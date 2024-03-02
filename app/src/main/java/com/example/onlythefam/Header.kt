@@ -1,7 +1,9 @@
 package com.example.onlythefam
 
 import android.content.ContentValues.TAG
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
@@ -21,10 +23,12 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.onlythefam.ui.theme.Blue500
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Header() {
+fun Header(navController: NavHostController) {
     val name = "John"
     TopAppBar(
         modifier = Modifier
@@ -44,7 +48,7 @@ fun Header() {
                 modifier = Modifier.padding(end = 16.dp)
             ) {
                 IconButton(
-                    onClick = { onIconClick() },
+                    onClick = { navController.navigate("profileSettings") },
                 ) {
                     Icon(
                         Icons.Rounded.Person,
@@ -59,8 +63,4 @@ fun Header() {
         },
         backgroundColor = Color(0x00FFFFFF)
     )
-}
-
-fun onIconClick() {
-    Log.w(TAG, "clicked")
 }
