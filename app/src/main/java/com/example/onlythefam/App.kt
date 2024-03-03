@@ -1,6 +1,8 @@
 package com.example.onlythefam
 
+import android.content.ContentValues.TAG
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -26,6 +28,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import java.sql.*
+import android.content.Context
+import java.io.InputStream
+import java.util.Properties
 
 @Composable
 fun Todos() {
@@ -135,11 +140,8 @@ fun BottomNavigation(navController: NavController) {
 }
 
 object GlobalVariables {
-    var db: DatabaseHelper = DatabaseHelper(
-        "jdbc:postgresql://onlythefam-do-user-9272876-0.c.db.ondigitalocean.com:25060/onlythefam",
-        "doadmin",
-        "AVNS_vIBhnnTu7WwLLnJXOz5"
-    )
+    var userId: String? = null
+    val localIP: String? = null
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -149,7 +151,7 @@ fun App() {
     val loginController = rememberNavController()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        NavHost(navController = loginController, startDestination = "home") {
+        NavHost(navController = loginController, startDestination = "login") {
             composable("login") {
                 LoginScreen({loginController.navigate("home") }, {loginController.navigate("signup") })
             }
@@ -167,43 +169,43 @@ fun App() {
     }
 }
 
-class DatabaseHelper(private val url: String, private val user: String, private val password: String) {
-
-    fun executeQuery(query: String, params: Array<Any>): ResultSet? {
-        var resultSet: ResultSet? = null
-        var connection: Connection? = null
-
-        try {
-            connection = DriverManager.getConnection(url, user, password)
-            val preparedStatement: PreparedStatement = connection.prepareStatement(query)
-            for (i in params.indices) {
-                preparedStatement.setObject(i + 1, params[i])
-            }
-            resultSet = preparedStatement.executeQuery()
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        }
-        connection?.close()
-        return resultSet
-    }
-
-    fun executeUpdate(query: String, params: Array<Any>): Int {
-        var connection: Connection? = null
-        var ret: Int = -1
-
-        try {
-            connection = DriverManager.getConnection(url, user, password)
-            val preparedStatement: PreparedStatement = connection.prepareStatement(query)
-            for (i in params.indices) {
-                preparedStatement.setObject(i + 1, params[i])
-            }
-            ret = preparedStatement.executeUpdate()
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        }
-        connection?.close()
-        return ret
-    }
-
-
-}
+//class DatabaseHelper(private val url: String, private val user: String, private val password: String) {
+//
+//    fun executeQuery(query: String, params: Array<Any>): ResultSet? {
+//        var resultSet: ResultSet? = null
+//        var connection: Connection? = null
+//
+//        try {
+//            connection = DriverManager.getConnection(url, user, password)
+//            val preparedStatement: PreparedStatement = connection.prepareStatement(query)
+//            for (i in params.indices) {
+//                preparedStatement.setObject(i + 1, params[i])
+//            }
+//            resultSet = preparedStatement.executeQuery()
+//        } catch (e: SQLException) {
+//            e.printStackTrace()
+//        }
+//        connection?.close()
+//        return resultSet
+//    }
+//
+//    fun executeUpdate(query: String, params: Array<Any>): Int {
+//        var connection: Connection? = null
+//        var ret: Int = -1
+//
+//        try {
+//            connection = DriverManager.getConnection(url, user, password)
+//            val preparedStatement: PreparedStatement = connection.prepareStatement(query)
+//            for (i in params.indices) {
+//                preparedStatement.setObject(i + 1, params[i])
+//            }
+//            ret = preparedStatement.executeUpdate()
+//        } catch (e: SQLException) {
+//            e.printStackTrace()
+//        }
+//        connection?.close()
+//        return ret
+//    }
+//
+//
+//}

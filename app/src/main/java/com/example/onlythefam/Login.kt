@@ -1,5 +1,7 @@
 package com.example.onlythefam
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,9 +20,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.sql.ResultSet
-import java.sql.SQLException
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import java.io.FileInputStream
+import java.io.File
+import java.util.*
 
 @Composable
 fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
@@ -99,26 +111,25 @@ fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
     }
 }
 
-// update for hashing
+@Serializable
+data class LoginRequest(val email: String, val password: String)
+
 private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, onlogin: () -> Unit) {
     coroutineScope.launch {
-        try {
-            val query = """
-            SELECT COUNT(*) AS count
-            FROM users
-            WHERE email = ? AND password = ?;
-            """.trimIndent()
-            val result = GlobalVariables.db.executeQuery(query, arrayOf(email, password))
-            if (result != null) {
-                if (result.next()) {
-                    val count = result.getInt("count")
-                    if (count < 1) {
-                        throw Exception("Login Unsuccessful.")
-                    }
-                }
-            } else {
-                throw Exception("Database Error.")
+        val loginEndpoint = "http://${GlobalVariables.localIP}:5050/login"
+        val client = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                json()
             }
+        }
+
+        try {
+            val response: HttpResponse = client.post(loginEndpoint) {
+                contentType(ContentType.Application.Json)
+                setBody(LoginRequest(email, password))
+            }
+            client.close()
+            GlobalVariables.userId = response.bodyAsText()
             scaffoldState.snackbarHostState.showSnackbar("Sign-in successful")
             onlogin()
         } catch (e: Exception) {
