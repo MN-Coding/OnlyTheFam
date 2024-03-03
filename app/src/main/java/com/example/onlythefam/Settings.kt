@@ -92,55 +92,6 @@ fun SettingsPage(onGoBack: () -> Unit) {
     }
 }
 
-//@Composable
-//fun EditableUserProfileField(fieldName: String, fieldVal: String, onChange: (String) -> Unit){
-//    var inEditMode by remember { mutableStateOf(false)}
-//    Row(
-//        verticalAlignment = Alignment.CenterVertically,
-//        modifier = Modifier.fillMaxWidth()
-//    ) {
-//        if (inEditMode) {
-//            Column (
-//                modifier = Modifier
-//                    .weight(1f)
-//            ) {
-//                OutlinedTextField(
-//                    value = fieldVal,
-//                    onValueChange = onChange,
-//                    label = { Text("Edit $fieldName") },
-//                    singleLine = true,
-//                    modifier = Modifier.fillMaxWidth()
-//                )
-//            }
-//        } else {
-//            Column (
-//                modifier = Modifier
-//                    .weight(1f)
-//                    .wrapContentWidth(Alignment.Start)
-//            )
-//            {
-//                Text(fieldName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-//                OutlinedTextField(
-//                    value = fieldVal,
-//                    onValueChange = {},
-//                    readOnly = true,
-//                    singleLine = true,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .align(Alignment.CenterHorizontally)
-//                )
-//            }
-//        }
-//        IconButton(onClick = { inEditMode = !inEditMode }) {
-//            Icon(
-//                imageVector = if (inEditMode) Icons.Filled.Check else Icons.Filled.Edit,
-//                contentDescription = if (inEditMode) "Save" else "Edit"
-//            )
-//        }
-//    }
-//    Spacer(modifier = Modifier.height(18.dp))
-//}
-
 @Composable
 fun StaticUserProfileField(fieldName: String, fieldVal: String){
     Row(
