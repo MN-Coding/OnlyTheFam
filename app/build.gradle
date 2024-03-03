@@ -44,10 +44,6 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.1'
-    }
 }
 
 dependencies {
@@ -73,4 +69,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.4.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:1.0.0-alpha07'
     implementation "org.postgresql:postgresql:42.2.5"
+    implementation "io.ktor:ktor-client-core:2.3.8"
+    implementation "io.ktor:ktor-client-cio:2.3.8"
+    implementation "io.ktor:ktor-client-json:2.3.8"
+    implementation "io.ktor:ktor-client-serialization:2.3.8"
 }

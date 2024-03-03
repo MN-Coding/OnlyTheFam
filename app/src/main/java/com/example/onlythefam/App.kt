@@ -140,6 +140,7 @@ object GlobalVariables {
         "doadmin",
         "AVNS_vIBhnnTu7WwLLnJXOz5"
     )
+    var userId: String? = null
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
