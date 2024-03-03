@@ -150,7 +150,7 @@ fun App() {
     val loginController = rememberNavController()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        NavHost(navController = loginController, startDestination = "home") {
+        NavHost(navController = loginController, startDestination = "login") {
             composable("login") {
                 LoginScreen({loginController.navigate("home") }, {loginController.navigate("signup") })
             }
