@@ -124,7 +124,7 @@ fun AddEvent() {
                 .padding(20.dp)
                 .verticalScroll(scrollState, enabled = true)
         ) {
-//            EditableTextField(fieldName = "Event Name", fieldVal = eventName, onChange = {updated -> eventName = updated})
+            EditableTextField(fieldName = "Event Name", fieldVal = eventName, onChange = {updated -> eventName = updated})
 
             Text("Start Time:", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -171,9 +171,9 @@ fun AddEvent() {
 
             Spacer(Modifier.height(5.dp))
 
-//            EditableTextField(fieldName = "Share With", fieldVal = shareWith, onChange = {updated -> shareWith = updated})
+            EditableTextField(fieldName = "Share With", fieldVal = shareWith, onChange = {updated -> shareWith = updated})
 
-//            EditableTextField(fieldName = "Description", fieldVal = description, onChange = {updated -> description = updated})
+            EditableTextField(fieldName = "Description", fieldVal = description, onChange = {updated -> description = updated})
 
             Text("Tasks:", fontWeight= FontWeight.Bold)
             Spacer(Modifier.height(5.dp))

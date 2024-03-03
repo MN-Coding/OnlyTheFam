@@ -80,14 +80,14 @@ fun SettingsPage(onGoBack: () -> Unit) {
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
         ) {
-//            EditableTextField(fieldName = "Name", fieldVal = name, onChange = {updatedName -> name = updatedName})
-//            EditableTextField(fieldName = "Date of Birth", fieldVal = dob, onChange = {updatedDob -> dob = updatedDob})
+            EditableTextField(fieldName = "Name", fieldVal = name, onChange = {updatedName -> name = updatedName})
+            EditableTextField(fieldName = "Date of Birth", fieldVal = dob, onChange = {updatedDob -> dob = updatedDob})
             StaticUserProfileField(fieldName = "Email", fieldVal = email)
             Spacer(modifier = Modifier.height(5.dp))
             Text("Health", fontSize = 21.sp)
             Spacer(modifier = Modifier.height(16.dp))
-//            EditableTextField(fieldName = "Blood Type", fieldVal = bloodType, onChange = {updatedBT -> bloodType = updatedBT})
-//            EditableTextField(fieldName = "Allergies", fieldVal = allergies, onChange = {updatedAllergies -> allergies = updatedAllergies})
+            EditableTextField(fieldName = "Blood Type", fieldVal = bloodType, onChange = {updatedBT -> bloodType = updatedBT})
+            EditableTextField(fieldName = "Allergies", fieldVal = allergies, onChange = {updatedAllergies -> allergies = updatedAllergies})
         }
     }
 }
