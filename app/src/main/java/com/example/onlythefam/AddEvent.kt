@@ -124,14 +124,7 @@ fun AddEvent() {
                 .padding(20.dp)
                 .verticalScroll(scrollState, enabled = true)
         ) {
-            Text("Event Name:", fontWeight = FontWeight.Bold)
-            OutlinedTextField(
-                value = eventName,
-                onValueChange = { eventName = it },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(Modifier.height(5.dp))
+            EditableTextField(fieldName = "Event Name", fieldVal = eventName, onChange = {updated -> eventName = updated})
 
             Text("Start Time:", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -178,46 +171,9 @@ fun AddEvent() {
 
             Spacer(Modifier.height(5.dp))
 
-            Text("Share with:", fontWeight= FontWeight.Bold)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = shareWith, onValueChange = { shareWith = it },
-                    modifier = Modifier.fillMaxSize().weight(5f)
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                IconButton(onClick = { /*TODO*/ },
-                    modifier = Modifier.fillMaxSize().weight(1f)) {
-                    Icon(
-                        Icons.Filled.Edit,
-                        contentDescription = "Edit"
-                    )
-                }
-            }
+            EditableTextField(fieldName = "Share With", fieldVal = shareWith, onChange = {updated -> shareWith = updated})
 
-            Spacer(Modifier.height(5.dp))
-
-            Text("Description:", fontWeight= FontWeight.Bold)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = description, onValueChange = { description = it },
-                    modifier = Modifier.fillMaxSize().weight(5f)
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                IconButton(onClick = { /*TODO*/ },
-                    modifier = Modifier.fillMaxSize().weight(1f)) {
-                    Icon(
-                        Icons.Filled.Edit,
-                        contentDescription = "Edit"
-                    )
-                }
-            }
-            Spacer(Modifier.height(5.dp))
+            EditableTextField(fieldName = "Description", fieldVal = description, onChange = {updated -> description = updated})
 
             Text("Tasks:", fontWeight= FontWeight.Bold)
             Spacer(Modifier.height(5.dp))
