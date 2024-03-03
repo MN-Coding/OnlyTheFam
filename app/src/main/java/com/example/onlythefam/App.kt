@@ -140,6 +140,7 @@ object GlobalVariables {
         "doadmin",
         "AVNS_vIBhnnTu7WwLLnJXOz5"
     )
+    var localIP: String? = null
     var userId: String? = null
 }
 
