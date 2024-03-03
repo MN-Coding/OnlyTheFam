@@ -111,7 +111,7 @@ data class LoginRequest(val email: String, val password: String)
 
 private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, onlogin: () -> Unit) {
     coroutineScope.launch {
-        val loginEndpoint = "http://${GlobalVariables.localIP}:5050/login"
+        val loginEndpoint = "http://localhost:5050/login"
         val client = HttpClient(CIO) {
             install(ContentNegotiation) {
                 json()

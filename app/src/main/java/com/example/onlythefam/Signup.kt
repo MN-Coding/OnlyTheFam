@@ -264,18 +264,18 @@ fun SignUpFlow(onsignup: () -> Unit, gotologin: () -> Unit) {
 // finish adding other info
 private fun signUp(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, redirectOnSignup: () -> Unit) {
     coroutineScope.launch {
-        try {
-            val query = """
-            INSERT INTO users (email, password) VALUES (?, ?)
-            """.trimIndent()
-            val result = GlobalVariables.db.executeUpdate(query, arrayOf(email, password))
-            if (result == -1) {
-                throw Exception("DB Update Failed.")
-            }
-            scaffoldState.snackbarHostState.showSnackbar("Sign-up successful")
-            redirectOnSignup()
-        } catch (e: Exception) {
-            scaffoldState.snackbarHostState.showSnackbar("Sign-up failed: ${e.message}")
-        }
+//        try {
+//            val query = """
+//            INSERT INTO users (email, password) VALUES (?, ?)
+//            """.trimIndent()
+//            val result = GlobalVariables.db.executeUpdate(query, arrayOf(email, password))
+//            if (result == -1) {
+//                throw Exception("DB Update Failed.")
+//            }
+//            scaffoldState.snackbarHostState.showSnackbar("Sign-up successful")
+//            redirectOnSignup()
+//        } catch (e: Exception) {
+//            scaffoldState.snackbarHostState.showSnackbar("Sign-up failed: ${e.message}")
+//        }
     }
 }
