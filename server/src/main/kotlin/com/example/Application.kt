@@ -15,7 +15,7 @@ fun main() {
 fun Application.module() {
 
     Database.connect(
-        url = "postgresql://doadmin:AVNS_vIBhnnTu7WwLLnJXOz5@onlythefam-do-user-9272876-0.c.db.ondigitalocean.com:25060/defaultdb",
+        url = "jdbc:postgresql://onlythefam-do-user-9272876-0.c.db.ondigitalocean.com:25060/onlythefam",
         driver = "org.postgresql.Driver",
         user = "doadmin",
         password = "AVNS_vIBhnnTu7WwLLnJXOz5"
