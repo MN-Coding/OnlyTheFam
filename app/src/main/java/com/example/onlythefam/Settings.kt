@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -71,7 +72,7 @@ fun SettingsPage(onGoBack: () -> Unit) {
     ){
         var name by remember { mutableStateOf("John Doe") }
         val email by remember { mutableStateOf("johndoe@gmail.com") }
-        var dob by remember { mutableStateOf("November 4th, 2001") }
+        var dob by remember { mutableStateOf("January 1st, 1999") }
         var bloodType by remember { mutableStateOf("O-") }
         var allergies by remember { mutableStateOf("") }
 
@@ -88,6 +89,13 @@ fun SettingsPage(onGoBack: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
             EditableTextField(fieldName = "Blood Type", fieldVal = bloodType, onChange = {updatedBT -> bloodType = updatedBT})
             EditableTextField(fieldName = "Allergies", fieldVal = allergies, onChange = {updatedAllergies -> allergies = updatedAllergies})
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                onClick = { /*logout*/ },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Log out")
+            }
         }
     }
 }
