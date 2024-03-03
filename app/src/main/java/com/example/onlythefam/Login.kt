@@ -1,5 +1,7 @@
 package com.example.onlythefam
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,6 +30,9 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import java.io.FileInputStream
+import java.io.File
+import java.util.*
 
 @Composable
 fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
@@ -111,7 +116,7 @@ data class LoginRequest(val email: String, val password: String)
 
 private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, onlogin: () -> Unit) {
     coroutineScope.launch {
-        val loginEndpoint = "http://localhost:5050/login"
+        val loginEndpoint = "http://${GlobalVariables.localIP}:5050/login"
         val client = HttpClient(CIO) {
             install(ContentNegotiation) {
                 json()
