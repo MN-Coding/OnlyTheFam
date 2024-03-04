@@ -1,8 +1,5 @@
 package com.example.routes
 
-import com.example.data.model.User
-import com.example.data.model.UserLogin
-import com.example.data.schema.Users
 import com.example.data.model.Event
 import com.example.data.schema.Events
 import io.ktor.http.*
@@ -12,8 +9,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.selectAll
 
