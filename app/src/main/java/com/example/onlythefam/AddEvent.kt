@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import java.time.format.DateTimeFormatter
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -51,6 +52,55 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class SubmitEventRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String)
+
+suspend fun submitEvent(eventName: String, description: String, startDateTime: String, endDateTime: String): Boolean {
+
+    val submitEventEndpoint = "http://${GlobalVariables.localIP}:5050/addevent"
+    Log.d("SubmitEvent", "Endpoint: $submitEventEndpoint")
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    val eventID = "event" + UUID.randomUUID()
+    Log.d("SubmitEvent", "Generated Event ID: $eventID")
+
+    try {
+        Log.d("SubmitEvent", "Attempting to submit event: $eventName")
+        val response: HttpResponse = client.post(submitEventEndpoint) {
+            contentType(ContentType.Application.Json)
+            setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime))
+        }
+        Log.d("SubmitEvent", "Response Status: ${response.status}")
+
+        // Close the client after the request
+        client.close()
+        val isSuccess = response.status.value in 200..299
+        if (isSuccess) {
+            Log.d("SubmitEvent", "Event submission successful")
+        } else {
+            Log.d("SubmitEvent", "Event submission failed with status: ${response.status}")
+        }
+        return isSuccess
+    } catch (e: Exception) {
+        Log.e("SubmitEvent", "Exception during event submission", e)
+        return false
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -64,6 +114,7 @@ fun AddEvent() {
     var endTime by remember { mutableStateOf(LocalDateTime.now().plusHours(1)) }
     var description by remember { mutableStateOf("") }
     var shareWith by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     // Initialize Places if not already done
     if (!Places.isInitialized()) {
@@ -124,7 +175,7 @@ fun AddEvent() {
                 .padding(20.dp)
                 .verticalScroll(scrollState, enabled = true)
         ) {
-            EditableTextField(fieldName = "Event Name", fieldVal = eventName, onChange = {updated -> eventName = updated})
+            EditableTextField(fieldName = "Event Name", fieldVal = eventName, onChange = { updated -> eventName = updated })
 
             Text("Start Time:", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -171,22 +222,38 @@ fun AddEvent() {
 
             Spacer(Modifier.height(5.dp))
 
-            EditableTextField(fieldName = "Share With", fieldVal = shareWith, onChange = {updated -> shareWith = updated})
+            EditableTextField(fieldName = "Share With", fieldVal = shareWith, onChange = { updated -> shareWith = updated })
 
-            EditableTextField(fieldName = "Description", fieldVal = description, onChange = {updated -> description = updated})
+            EditableTextField(fieldName = "Description", fieldVal = description, onChange = { updated -> description = updated })
 
-            Text("Tasks:", fontWeight= FontWeight.Bold)
+            Text("Tasks:", fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(5.dp))
 
-            Text("Cost Split:", fontWeight= FontWeight.Bold)
+            Text("Cost Split:", fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(5.dp))
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = { /*TODO: Implement cancel logic*/ }) {
+                Button(onClick = { /*TODO: Implement create event logic*/ }) {
                     Text("Cancel")
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Button(onClick = { /*TODO: Implement create event logic*/ }) {
+                Button(onClick = {
+
+                    println("making post request")
+
+                    coroutineScope.launch {
+                        val startTimeFormatted = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                        val endTimeFormatted = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                        val success = submitEvent(eventName, description, startTimeFormatted, endTimeFormatted)
+                        if (success) {
+                            println("[SUCCESSFUL] SUBMITTING EVENT")
+
+                        } else {
+                            println("[FAILED] SUBMITTING EVENT")
+
+                        }
+                    }
+                }) {
                     Text("Create")
                 }
             }
