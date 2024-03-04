@@ -9,6 +9,6 @@ data class Event(
     val eventID: String,
     val name: String,
     val description: String?,
-    @Contextual val startDatetime: LocalDateTime,
-    @Contextual val endDatetime: LocalDateTime
+    val startDatetime: String,
+    val endDatetime: String
 )

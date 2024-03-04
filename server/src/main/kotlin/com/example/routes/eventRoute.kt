@@ -29,7 +29,7 @@ fun Route.eventRoutes() {
         transaction {
             Events.insert { event ->
                 event[event_id] = eventData.eventID
-                event[name] = eventData.name
+                event[name] = eventData .name
                 event[description] = eventData.description
                 event[start_datetime] = eventData.startDatetime
                 event[end_datetime] = eventData.endDatetime
