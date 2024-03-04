@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -25,6 +26,7 @@ fun Route.eventRoutes() {
             Events.selectAll()
                 .map { Event(it[Events.event_id], it[Events.name], it[Events.description], it[Events.start_datetime].toString(), it[Events.end_datetime].toString()) }
         }
+
         call.respondText(Json.encodeToString(eventsList), ContentType.Application.Json, status = HttpStatusCode.OK)
     }
 
@@ -99,4 +101,18 @@ fun Route.eventRoutes() {
     }
 
 
+
+    post("/addevent") {
+        val eventData = call.receive<Event>()
+        transaction {
+            Events.insert { event ->
+                event[event_id] = eventData.eventID
+                event[name] = eventData .name
+                event[description] = eventData.description
+                event[start_datetime] = eventData.startDatetime
+                event[end_datetime] = eventData.endDatetime
+            }
+        }
+        call.respond(HttpStatusCode.Created)
+    }
 }
