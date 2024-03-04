@@ -39,6 +39,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import android.util.Log
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 
 @Serializable
@@ -51,56 +55,76 @@ data class EventResponse(
     val participants: List<String>
 )
 
+// For UI state management
+data class EventUiModel(
+    val eventResponse: EventResponse,
+) {
+    var expanded by mutableStateOf(false)
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EventsPage() {
     val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
-    val events = remember { mutableStateListOf<EventResponse>() }
+    val eventsUiModel = remember { mutableStateListOf<EventUiModel>() }
 
     LaunchedEffect(uid) {
-        Log.d("EventsPage", "Fetching events for user ID: $uid")
         if (uid.isNotEmpty()) {
-            events.addAll(getEventsByUserId(uid))
-            Log.d("EventsPage", "Events fetched: ${events.size}")
+            val events = getEventsByUserId(uid)
+            eventsUiModel.addAll(events.map { EventUiModel(it) })
         }
     }
 
     Scaffold {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            events.forEach { event ->
-                Log.d("EventsPage", "Displaying event: ${event.name}")
-                Card(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth(),
-                    backgroundColor = MaterialTheme.colors.surface,
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = 8.dp,
-                    border = BorderStroke(1.dp, Color.Gray)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = event.name,
-                            style = MaterialTheme.typography.body1,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = event.description ?: "",
-                                style = MaterialTheme.typography.caption
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                text = event.startDatetime,
-                                style = MaterialTheme.typography.caption
-                            )
-                        }
-                    }
-                }
+            eventsUiModel.forEach { eventUiModel ->
+                EventCard(eventUiModel = eventUiModel)
+            }
+        }
+    }
+}
+
+@Composable
+fun EventCard(eventUiModel: EventUiModel) {
+    Card(
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxWidth()
+            .clickable { eventUiModel.expanded = !eventUiModel.expanded },
+        backgroundColor = MaterialTheme.colors.surface,
+        shape = RoundedCornerShape(16.dp),
+        elevation = 8.dp,
+        border = BorderStroke(1.dp, Color.Gray)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = eventUiModel.eventResponse.name,
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            if (eventUiModel.expanded) {
+                // Show detailed information if the card is expanded
+                Text(
+                    text = "Description: ${eventUiModel.eventResponse.description ?: "No description"}",
+                    style = MaterialTheme.typography.body2,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = "Start: ${eventUiModel.eventResponse.startDatetime}",
+                    style = MaterialTheme.typography.body2,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Text(
+                    text = "End: ${eventUiModel.eventResponse.endDatetime}",
+                    style = MaterialTheme.typography.body2,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Text(
+                    text = "Participants: ${eventUiModel.eventResponse.participants.joinToString(", ")}",
+                    style = MaterialTheme.typography.body2
+                )
             }
         }
     }
