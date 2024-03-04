@@ -3,7 +3,6 @@ package com.example.data.schema
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
 
-
 object Events : Table() {
     val event_id = text("event_id")
     val name = text("name")
@@ -14,7 +13,6 @@ object Events : Table() {
     override val primaryKey = PrimaryKey(event_id)
 }
 
-// Definition for the 'event_participants' table
 object EventParticipants : Table() {
     val event_id = reference("event_id", Events.event_id)
     val user_id = text("user_id")
