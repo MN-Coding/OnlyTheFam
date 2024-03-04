@@ -33,7 +33,7 @@ data class UserInfo(
 fun Route.userRoutes() {
 
     put("/updateInfo"){
-        /* TODO */
+        /* Pending */
     }
 
     get("/getAllergies"){
