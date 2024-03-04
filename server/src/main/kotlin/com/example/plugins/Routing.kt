@@ -13,6 +13,7 @@ fun Application.configureRouting() {
             call.respondText("Received")
         }
         authRoutes()
+        userRoutes()
         eventRoutes()
     }
 }

@@ -68,7 +68,7 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NavigationGraph(navController: NavHostController) {
+fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit) {
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
             HomePage(navController)
@@ -86,7 +86,8 @@ fun NavigationGraph(navController: NavHostController) {
             Family()
         }
         composable("profileSettings"){
-            SettingsPage(onGoBack = {navController.popBackStack()})
+            SettingsPage(onGoBack = {navController.popBackStack()},
+                         onLogout = logoutProcess)
         }
     }
 }
@@ -150,6 +151,12 @@ fun App() {
     val navController = rememberNavController()
     val loginController = rememberNavController()
 
+    val logout = {
+        loginController.navigate("login"){
+            popUpTo("login"){ inclusive = true }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(navController = loginController, startDestination = "login") {
             composable("login") {
@@ -162,7 +169,7 @@ fun App() {
                 Scaffold(
                     bottomBar = { BottomNavigation(navController = navController) }
                 ) {
-                    NavigationGraph(navController = navController)
+                    NavigationGraph(navController = navController, logoutProcess = logout)
                 }
             }
         }

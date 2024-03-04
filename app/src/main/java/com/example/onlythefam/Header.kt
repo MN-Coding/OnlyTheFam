@@ -36,7 +36,7 @@ fun Header(navController: NavHostController) {
         elevation = 0.dp,
         title = {
             Text(
-                text = "Welcome Home $name",
+                text = "Welcome Home",
                 style = MaterialTheme.typography.h2,
                 fontSize = 24.sp,
                 color = Color.Black,
