@@ -14,12 +14,3 @@ object Events : Table() {
     override val primaryKey = PrimaryKey(event_id)
 }
 
-// Definition for the 'event_participants' table
-object EventParticipants : Table() {
-    val event_id = reference("event_id", Events.event_id)
-    val user_id = text("user_id")
-    val cost_percentage = integer("cost_percentage").nullable()
-
-    override val primaryKey = PrimaryKey(event_id, user_id)
-}
-
