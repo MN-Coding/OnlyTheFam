@@ -141,7 +141,7 @@ fun BottomNavigation(navController: NavController) {
 
 object GlobalVariables {
     var userId: String? = null
-    val localIP: String? = null
+    val localIP: String? = "10.0.2.2"
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
