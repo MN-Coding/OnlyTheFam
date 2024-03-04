@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.LocalContext
 import java.time.format.DateTimeFormatter
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -63,12 +64,12 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SubmitEventRequest(val eventID: String, val eventName: String, val description: String, val startDateTime: String, val endDateTime: String)
+data class SubmitEventRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String)
 
 suspend fun submitEvent(eventName: String, description: String, startDateTime: String, endDateTime: String): Boolean {
 
     val submitEventEndpoint = "http://${GlobalVariables.localIP}:5050/addevent"
-
+    Log.d("SubmitEvent", "Endpoint: $submitEventEndpoint")
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json()
@@ -76,20 +77,27 @@ suspend fun submitEvent(eventName: String, description: String, startDateTime: S
     }
 
     val eventID = "event" + UUID.randomUUID()
+    Log.d("SubmitEvent", "Generated Event ID: $eventID")
 
     try {
-
+        Log.d("SubmitEvent", "Attempting to submit event: $eventName")
         val response: HttpResponse = client.post(submitEventEndpoint) {
             contentType(ContentType.Application.Json)
             setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime))
         }
+        Log.d("SubmitEvent", "Response Status: ${response.status}")
 
         // Close the client after the request
         client.close()
-        // Handle the response if needed
-        return response.status.value in 200..299
+        val isSuccess = response.status.value in 200..299
+        if (isSuccess) {
+            Log.d("SubmitEvent", "Event submission successful")
+        } else {
+            Log.d("SubmitEvent", "Event submission failed with status: ${response.status}")
+        }
+        return isSuccess
     } catch (e: Exception) {
-        // Handle exceptions if needed
+        Log.e("SubmitEvent", "Exception during event submission", e)
         return false
     }
 }
@@ -225,6 +233,10 @@ fun AddEvent() {
             Spacer(Modifier.height(5.dp))
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = { /*TODO: Implement create event logic*/ }) {
+                    Text("Cancel")
+                }
+                Spacer(modifier = Modifier.width(16.dp))
                 Button(onClick = {
 
                     println("making post request")
@@ -242,10 +254,6 @@ fun AddEvent() {
                         }
                     }
                 }) {
-                    Text("Cancel")
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Button(onClick = { /*TODO: Implement create event logic*/ }) {
                     Text("Create")
                 }
             }
