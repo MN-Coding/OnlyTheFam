@@ -51,12 +51,27 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddEvent() {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    val scaffoldState = rememberScaffoldState()
 
     var eventName by remember { mutableStateOf("Enter Event Name") }
     var location by remember { mutableStateOf("Enter Location") }
@@ -186,10 +201,40 @@ fun AddEvent() {
                     Text("Cancel")
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Button(onClick = { /*TODO: Implement create event logic*/ }) {
+                Button(onClick = { addEvent(eventName, description, startTime.toString(),
+                    endTime.toString(), scaffoldState, coroutineScope) }) {
                     Text("Create")
                 }
             }
+        }
+    }
+}
+
+@Serializable
+data class AddEventRequest(val name: String, val decription: String, val end_datetime: String, val start_datetime: String)
+
+private fun addEvent(name: String, description: String,
+                     start_datetime: String, end_datetime: String,
+                     scaffoldState: ScaffoldState, coroutineScope: CoroutineScope) {
+    coroutineScope.launch {
+        val eventEndpoint = "http://${GlobalVariables.localIP}:5050/addEvent"
+        val client = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        try {
+            val response: HttpResponse = client.post(eventEndpoint) {
+                contentType(ContentType.Application.Json)
+                setBody(AddEventRequest(name, description, start_datetime, end_datetime))
+            }
+            client.close()
+            GlobalVariables.userId = response.bodyAsText()
+            scaffoldState.snackbarHostState.showSnackbar("Successfully added event")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            scaffoldState.snackbarHostState.showSnackbar("Failed to create event: ${e.message}")
         }
     }
 }
