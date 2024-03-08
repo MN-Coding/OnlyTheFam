@@ -9,3 +9,6 @@
 | 2024/01/25 |   0.5   |         |        |      |       |         | D1 - Functional Properties |
 | 2024/01/26 |    1    |         |        |      |       |         | D1 - Non-functional Properties |
 | 2024/02/13 |   0.5   |   0.5   |        |      |       |    0.5  | D2|
+| 2024/03/01 |         |         |        |      |       |      5  | D3 - Todo list frontend|
+| 2024/03/02 |         |         |        |      |       |      3  | D3 - Updated Todo list frontend|
+| 2024/03/03 |         |         |        |      |       |    0.5  | D3 - Presentation|
