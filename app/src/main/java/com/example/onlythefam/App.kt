@@ -83,7 +83,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
         composable("eventDetails/{eventId}") { backStackEntry ->
             val eventId = backStackEntry.arguments?.getString("eventId")
             if (eventId != null) {
-                EventDetails(eventId = eventId)
+                EventDetails(navController = navController, eventId = eventId)
             }
         }
     }

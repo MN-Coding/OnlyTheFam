@@ -3,7 +3,6 @@ package com.example.onlythefam
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
@@ -28,19 +27,37 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import android.util.Log
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.navigation.NavController
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun EventDetails(eventId: String) {
+fun EventDetails(navController: NavController, eventId: String) {
     val event = remember { mutableStateOf<EventResponse?>(null) }
 
     LaunchedEffect(eventId) {
         event.value = getEventById(eventId)
     }
 
-    event.value?.let { eventDetails ->
-        Scaffold {
-            Column(modifier = Modifier.padding(PaddingValues(16.dp))) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Event Details") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                backgroundColor = MaterialTheme.colors.primary
+            )
+        }
+    ) { innerPadding ->
+        event.value?.let { eventDetails ->
+            Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
                 Text(text = eventDetails.name, style = MaterialTheme.typography.h5)
                 Text(text = "Description: ${eventDetails.description}", style = MaterialTheme.typography.body1)
                 Text(text = "Start: ${eventDetails.startDatetime}", style = MaterialTheme.typography.body1)
@@ -51,6 +68,7 @@ fun EventDetails(eventId: String) {
         }
     }
 }
+
 
 private suspend fun getEventById(eventId: String): EventResponse? {
     val client = HttpClient(CIO) {
