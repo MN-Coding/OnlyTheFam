@@ -40,10 +40,10 @@ fun Todos() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Events() {
-    EventsPage()
-    //Text("Events")
+fun Events(navController: NavController) {
+    EventsPage(navController = navController)
 }
+
 
 @Composable
 fun Family() {
@@ -80,7 +80,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
             Add()
         }
         composable(BottomNavItem.Events.screen_route) {
-            Events()
+            Events(navController = navController)
         }
         composable(BottomNavItem.Family.screen_route) {
             Family()
@@ -88,6 +88,12 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
         composable("profileSettings"){
             SettingsPage(onGoBack = {navController.popBackStack()},
                          onLogout = logoutProcess)
+        }
+        composable("eventDetails/{eventId}") { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId")
+            if (eventId != null) {
+                EventDetails(eventId = eventId)
+            }
         }
     }
 }

@@ -43,6 +43,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavController
 
 
 @Serializable
@@ -63,9 +64,30 @@ data class EventUiModel(
     var expanded by mutableStateOf(false)
 }
 
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Composable
+//fun EventsPage() {
+//    val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
+//    val eventsUiModel = remember { mutableStateListOf<EventUiModel>() }
+//
+//    LaunchedEffect(uid) {
+//        if (uid.isNotEmpty()) {
+//            val events = getEventsByUserId(uid)
+//            eventsUiModel.addAll(events.map { EventUiModel(it) })
+//        }
+//    }
+//
+//    Scaffold {
+//        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+//            eventsUiModel.forEach { eventUiModel ->
+//                EventCard(eventUiModel = eventUiModel)
+//            }
+//        }
+//    }
+//}
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun EventsPage() {
+fun EventsPage(navController: NavController) {
     val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
     val eventsUiModel = remember { mutableStateListOf<EventUiModel>() }
 
@@ -79,19 +101,19 @@ fun EventsPage() {
     Scaffold {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             eventsUiModel.forEach { eventUiModel ->
-                EventCard(eventUiModel = eventUiModel)
+                EventCard(eventUiModel = eventUiModel, navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun EventCard(eventUiModel: EventUiModel) {
+fun EventCard(eventUiModel: EventUiModel, navController: NavController) {
     Card(
         modifier = Modifier
             .padding(10.dp)
             .fillMaxWidth()
-            .clickable { eventUiModel.expanded = !eventUiModel.expanded },
+            .clickable { navController.navigate("eventDetails/${eventUiModel.eventResponse.eventID}") },
         backgroundColor = MaterialTheme.colors.surface,
         shape = RoundedCornerShape(16.dp),
         elevation = 8.dp,
@@ -105,33 +127,33 @@ fun EventCard(eventUiModel: EventUiModel) {
                 style = MaterialTheme.typography.body1,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            if (eventUiModel.expanded) {
-                // Show detailed information if the card is expanded
-                Text(
-                    text = "Description: ${eventUiModel.eventResponse.description ?: "No description"}",
-                    style = MaterialTheme.typography.body2,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = "Start: ${eventUiModel.eventResponse.startDatetime}",
-                    style = MaterialTheme.typography.body2,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(
-                    text = "End: ${eventUiModel.eventResponse.endDatetime}",
-                    style = MaterialTheme.typography.body2,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(
-                    text = "Location: ${eventUiModel.eventResponse.location}",
-                    style = MaterialTheme.typography.body2,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(
-                    text = "Participants: ${eventUiModel.eventResponse.participants.joinToString(", ")}",
-                    style = MaterialTheme.typography.body2
-                )
-            }
+//            if (eventUiModel.expanded) {
+//                // Show detailed information if the card is expanded
+//                Text(
+//                    text = "Description: ${eventUiModel.eventResponse.description ?: "No description"}",
+//                    style = MaterialTheme.typography.body2,
+//                    modifier = Modifier.padding(bottom = 8.dp)
+//                )
+//                Text(
+//                    text = "Start: ${eventUiModel.eventResponse.startDatetime}",
+//                    style = MaterialTheme.typography.body2,
+//                    modifier = Modifier.padding(bottom = 4.dp)
+//                )
+//                Text(
+//                    text = "End: ${eventUiModel.eventResponse.endDatetime}",
+//                    style = MaterialTheme.typography.body2,
+//                    modifier = Modifier.padding(bottom = 4.dp)
+//                )
+//                Text(
+//                    text = "Location: ${eventUiModel.eventResponse.location}",
+//                    style = MaterialTheme.typography.body2,
+//                    modifier = Modifier.padding(bottom = 4.dp)
+//                )
+//                Text(
+//                    text = "Participants: ${eventUiModel.eventResponse.participants.joinToString(", ")}",
+//                    style = MaterialTheme.typography.body2
+//                )
+//            }
         }
     }
 }

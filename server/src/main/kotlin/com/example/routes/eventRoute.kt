@@ -30,6 +30,26 @@ fun Route.eventRoutes() {
         call.respondText(Json.encodeToString(eventsList), ContentType.Application.Json, status = HttpStatusCode.OK)
     }
 
+    get("/geteventbyid") {
+        val eventId = call.parameters["eventId"]
+        if (eventId == null) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid or missing eventId")
+            return@get
+        }
+
+        val event = transaction {
+            Events.select { Events.event_id eq eventId }
+                .map { Event(it[Events.event_id], it[Events.name], it[Events.description], it[Events.start_datetime].toString(), it[Events.end_datetime].toString(), it[Events.location]) }
+                .singleOrNull()
+        }
+
+        if (event != null) {
+            call.respondText(Json.encodeToString(event), ContentType.Application.Json, status = HttpStatusCode.OK)
+        } else {
+            call.respond(HttpStatusCode.NotFound, "Event not found")
+        }
+    }
+
     get("/geteventsbyuserid") {
         val user_id = call.parameters["userID"]
         if (user_id != null) {
