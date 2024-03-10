@@ -24,7 +24,7 @@ fun Route.eventRoutes() {
     get("/getallevents") {
         val eventsList = transaction {
             Events.selectAll()
-                .map { Event(it[Events.event_id], it[Events.name], it[Events.description], it[Events.start_datetime].toString(), it[Events.end_datetime].toString()) }
+                .map { Event(it[Events.event_id], it[Events.name], it[Events.description], it[Events.start_datetime].toString(), it[Events.end_datetime].toString(), it[Events.location]) }
         }
 
         call.respondText(Json.encodeToString(eventsList), ContentType.Application.Json, status = HttpStatusCode.OK)
@@ -42,6 +42,7 @@ fun Route.eventRoutes() {
                     E.description,
                     E.start_datetime,
                     E.end_datetime,
+                    E.location,
                     STRING_AGG(U.email, ',') as participants
                 FROM 
                     event_participants EP
@@ -56,7 +57,8 @@ fun Route.eventRoutes() {
                     E.name,
                     E.description,
                     E.start_datetime,
-                    E.end_datetime
+                    E.end_datetime,
+                    E.location
             """.trimIndent().format(user_id)
 
 
@@ -72,6 +74,7 @@ fun Route.eventRoutes() {
                                 "description" to it.getString("description"),
                                 "start_datetime" to it.getString("start_datetime"),
                                 "end_datetime" to it.getString("end_datetime"),
+                                "location" to it.getString("location"),
                                 "participants" to it.getString("participants").split(",")
                             )
                         }.toList()
@@ -111,6 +114,7 @@ fun Route.eventRoutes() {
                 event[description] = eventData.description
                 event[start_datetime] = eventData.startDatetime
                 event[end_datetime] = eventData.endDatetime
+                event[location] = eventData.location
             }
         }
         call.respond(HttpStatusCode.Created)

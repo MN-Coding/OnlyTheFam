@@ -10,6 +10,7 @@ object Events : Table() {
     val description = text("description").nullable()
     val start_datetime = text("start_datetime")
     val end_datetime = text("end_datetime")
+    val location = text("location")
 
     override val primaryKey = PrimaryKey(event_id)
 }
