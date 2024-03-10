@@ -1,9 +1,7 @@
 package com.example.routes
 
 import com.example.data.model.Event
-import com.example.data.schema.EventParticipants
 import com.example.data.schema.Events
-import com.example.data.schema.Users
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -14,8 +12,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.selectAll
 
@@ -28,6 +24,72 @@ fun Route.eventRoutes() {
         }
 
         call.respondText(Json.encodeToString(eventsList), ContentType.Application.Json, status = HttpStatusCode.OK)
+    }
+
+    get("/geteventbyid") {
+        val event_id = call.parameters["eventID"]
+        if (event_id != null) {
+            val result = withContext(Dispatchers.IO) {
+                // Fetch a single event by its ID
+                val query = """
+                SELECT 
+                    E.event_id,
+                    E.name,
+                    E.description,
+                    E.start_datetime,
+                    E.end_datetime,
+                    E.location,
+                    STRING_AGG(U.name, ',') as participants
+                FROM 
+                    event_participants EP
+                JOIN 
+                    Events E ON EP.event_id = E.event_id
+                JOIN 
+                    Users U ON EP.user_id = U.user_id
+                WHERE 
+                    E.event_id = '%s'
+                GROUP BY 
+                    E.event_id,
+                    E.name,
+                    E.description,
+                    E.start_datetime,
+                    E.end_datetime,
+                    E.location
+            """.trimIndent().format(event_id)
+
+                // Execute the query
+                transaction {
+                    exec(query) { rs ->
+                        if (rs.next()) {
+                            mapOf(
+                                "event_id" to rs.getString("event_id"),
+                                "name" to rs.getString("name"),
+                                "description" to rs.getString("description"),
+                                "start_datetime" to rs.getString("start_datetime"),
+                                "end_datetime" to rs.getString("end_datetime"),
+                                "location" to rs.getString("location"),
+                                "participants" to rs.getString("participants").split(",")
+                            )
+                        } else null
+                    }
+                }
+            }
+
+            if (result != null) {
+                val response = result.mapValues { entry ->
+                    if (entry.key.endsWith("_datetime")) {
+                        entry.value.toString()
+                    } else {
+                        entry.value
+                    }
+                }
+                call.respond(response)
+            } else {
+                call.respond(HttpStatusCode.NoContent, "No event found for this eventID")
+            }
+        } else {
+            call.respond(HttpStatusCode.BadRequest, "Invalid or missing eventID")
+        }
     }
 
     get("/geteventsbyuserid") {
