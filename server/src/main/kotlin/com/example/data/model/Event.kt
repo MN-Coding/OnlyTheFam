@@ -10,5 +10,6 @@ data class Event(
     val name: String,
     val description: String?,
     val startDatetime: String,
-    val endDatetime: String
+    val endDatetime: String,
+    val location: String,
 )

@@ -64,9 +64,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SubmitEventRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String)
+data class SubmitEventRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String, val location: String)
 
-suspend fun submitEvent(eventName: String, description: String, startDateTime: String, endDateTime: String): Boolean {
+suspend fun submitEvent(eventName: String, description: String, startDateTime: String, endDateTime: String, location: String): Boolean {
 
     val submitEventEndpoint = "http://${GlobalVariables.localIP}:5050/addevent"
     Log.d("SubmitEvent", "Endpoint: $submitEventEndpoint")
@@ -83,7 +83,7 @@ suspend fun submitEvent(eventName: String, description: String, startDateTime: S
         Log.d("SubmitEvent", "Attempting to submit event: $eventName")
         val response: HttpResponse = client.post(submitEventEndpoint) {
             contentType(ContentType.Application.Json)
-            setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime))
+            setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime, location))
         }
         Log.d("SubmitEvent", "Response Status: ${response.status}")
 
@@ -244,7 +244,7 @@ fun AddEvent() {
                     coroutineScope.launch {
                         val startTimeFormatted = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                         val endTimeFormatted = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                        val success = submitEvent(eventName, description, startTimeFormatted, endTimeFormatted)
+                        val success = submitEvent(eventName, description, startTimeFormatted, endTimeFormatted, location)
                         if (success) {
                             println("[SUCCESSFUL] SUBMITTING EVENT")
 
