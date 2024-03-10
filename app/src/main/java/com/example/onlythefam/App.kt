@@ -1,16 +1,11 @@
 package com.example.onlythefam
 
-import android.content.ContentValues.TAG
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -28,9 +23,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import java.sql.*
-import android.content.Context
-import java.io.InputStream
-import java.util.Properties
 
 @Composable
 fun Todos() {
@@ -54,7 +46,6 @@ fun Family() {
 @Composable
 fun Add() {
     AddEvent()
-    //Text("Add")
 }
 
 sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val title: String) {

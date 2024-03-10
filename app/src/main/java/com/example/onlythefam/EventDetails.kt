@@ -35,7 +35,7 @@ fun EventDetails(eventId: String) {
     val event = remember { mutableStateOf<EventResponse?>(null) }
 
     LaunchedEffect(eventId) {
-        event.value = getEventById(eventId) // Implement this function based on your backend/API
+        event.value = getEventById(eventId)
     }
 
     event.value?.let { eventDetails ->
@@ -50,7 +50,6 @@ fun EventDetails(eventId: String) {
             }
         }
     }
-
 }
 
 private suspend fun getEventById(eventId: String): EventResponse? {
