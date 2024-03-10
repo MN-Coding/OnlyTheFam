@@ -49,9 +49,10 @@ import androidx.compose.runtime.setValue
 data class EventResponse(
     @SerialName("event_id") val eventID: String,
     val name: String,
-    val description: String?,
-    @SerialName("start_datetime") val startDatetime: String,  // TODO: change these later if we change dates pack to type TIMESTAMP?
+    val description: String,
+    @SerialName("start_datetime") val startDatetime: String,
     @SerialName("end_datetime") val endDatetime: String,
+    val location: String,
     val participants: List<String>
 )
 
@@ -118,6 +119,11 @@ fun EventCard(eventUiModel: EventUiModel) {
                 )
                 Text(
                     text = "End: ${eventUiModel.eventResponse.endDatetime}",
+                    style = MaterialTheme.typography.body2,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Text(
+                    text = "End: ${eventUiModel.eventResponse.location}",
                     style = MaterialTheme.typography.body2,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
