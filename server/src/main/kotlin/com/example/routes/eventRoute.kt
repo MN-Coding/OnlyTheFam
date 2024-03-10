@@ -43,7 +43,7 @@ fun Route.eventRoutes() {
                     E.start_datetime,
                     E.end_datetime,
                     E.location,
-                    STRING_AGG(U.email, ',') as participants
+                    STRING_AGG(U.name, ',') as participants
                 FROM 
                     event_participants EP
                 JOIN 
