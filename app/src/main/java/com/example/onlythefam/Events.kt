@@ -123,7 +123,7 @@ fun EventCard(eventUiModel: EventUiModel) {
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "End: ${eventUiModel.eventResponse.location}",
+                    text = "Location: ${eventUiModel.eventResponse.location}",
                     style = MaterialTheme.typography.body2,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
