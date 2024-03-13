@@ -1,6 +1,7 @@
 package com.example.onlythefam
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -17,11 +18,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.onlythefam.GlobalVariables.userId
 import java.sql.*
 
 @Composable
@@ -60,8 +63,11 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit) {
+    val currentRoute = navController.currentDestination?.route
+    Log.d("Navigation", "Entered NavGraph, currentRoute: $currentRoute")
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
+            Log.d("Navigation", "Entering Homepage")
             HomePage(navController)
         }
         composable(BottomNavItem.Todos.screen_route) {
@@ -102,6 +108,7 @@ fun BottomNavigation(navController: NavController) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    Log.d("Navigation", "Bottom Navigation currentRoute: $currentRoute")
     val showBottomNav = currentRoute in bottomNavRoutes
 
     if (showBottomNav) {
@@ -145,28 +152,45 @@ object GlobalVariables {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {
-    val navController = rememberNavController()
+    val mainNavController = rememberNavController()
     val loginController = rememberNavController()
 
     val logout = {
-        loginController.navigate("login"){
-            popUpTo("login"){ inclusive = true }
+        Log.d("Navigation", "Starting logout process")
+        userId = null
+        Log.d("Logout", "User ID cleared")
+        mainNavController.popBackStack(mainNavController.graph.startDestinationId, inclusive = true, saveState = false)
+        val currentRoute = mainNavController.currentDestination?.route
+        Log.d("Navigation", "currentRoute: $currentRoute")
+
+        Log.d("Navigation", "navController back stack cleared")
+        loginController.navigate("login") {
+            popUpTo(loginController.graph.startDestinationId)
+            {
+                inclusive = true
+            }
+            Log.d("Navigation", "Navigated to login")
         }
+
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(navController = loginController, startDestination = "login") {
             composable("login") {
-                LoginScreen({loginController.navigate("home") }, {loginController.navigate("signup") })
+                LoginScreen(
+                    { loginController.navigate("home") },
+                    { loginController.navigate("signup") })
             }
             composable("signup") {
-                SignUpFlow({loginController.navigate("home") }, {loginController.navigate("login") })
+                SignUpFlow(
+                    { loginController.navigate("home") },
+                    { loginController.navigate("login") })
             }
             composable("home") {
                 Scaffold(
-                    bottomBar = { BottomNavigation(navController = navController) }
+                    bottomBar = { BottomNavigation(navController = mainNavController) }
                 ) {
-                    NavigationGraph(navController = navController, logoutProcess = logout)
+                    NavigationGraph(navController = mainNavController, logoutProcess = logout)
                 }
             }
         }
