@@ -157,17 +157,18 @@ fun App() {
 
     val logout = {
         Log.d("Navigation", "Starting logout process")
+        mainNavController.popBackStack()
+        mainNavController.popBackStack("home", inclusive=false, saveState = false)
         userId = null
         Log.d("Logout", "User ID cleared")
         mainNavController.popBackStack(mainNavController.graph.startDestinationId, inclusive = true, saveState = false)
         val currentRoute = mainNavController.currentDestination?.route
         Log.d("Navigation", "currentRoute: $currentRoute")
-
         Log.d("Navigation", "navController back stack cleared")
         loginController.navigate("login") {
             popUpTo(loginController.graph.startDestinationId)
             {
-                inclusive = true
+                inclusive = false
             }
             Log.d("Navigation", "Navigated to login")
         }
