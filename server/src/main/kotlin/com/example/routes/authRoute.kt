@@ -34,4 +34,5 @@ fun Route.authRoutes() {
             call.respondText("Invalid username or password", status = HttpStatusCode.BadRequest)
         }
     }
+
 }
