@@ -33,6 +33,10 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.navigation.NavController
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -59,11 +63,24 @@ fun EventDetails(navController: NavController, eventId: String) {
         event.value?.let { eventDetails ->
             Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
                 Text(text = eventDetails.name, style = MaterialTheme.typography.h5)
-                Text(text = "Description: ${eventDetails.description}", style = MaterialTheme.typography.body1)
+                Text(text = "Details: ${eventDetails.description}", style = MaterialTheme.typography.body1)
                 Text(text = "Start: ${eventDetails.startDatetime}", style = MaterialTheme.typography.body1)
                 Text(text = "End: ${eventDetails.endDatetime}", style = MaterialTheme.typography.body1)
                 Text(text = "Location: ${eventDetails.location}", style = MaterialTheme.typography.body1)
                 Text(text = "Participants: ${eventDetails.participants.joinToString(", ")}", style = MaterialTheme.typography.body1)
+
+                // Example location format: "37.4221,-122.0841"
+//                val location = eventDetails.location // TODO: bring this back
+                val location = "37.4221,-122.0841"
+                val mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=$location&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C$location&key=AIzaSyCg28OjKgjh8mYsAlrtDhtXF-0L2QMH1_Q"
+                Image(
+                    painter = rememberAsyncImagePainter(mapUrl),
+                    contentDescription = "Event Location Map",
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .fillMaxWidth(),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     }
