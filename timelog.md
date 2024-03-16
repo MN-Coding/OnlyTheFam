@@ -12,3 +12,4 @@
 | 2024/03/01 |         |         |        |      |       |      5  | D3 - Todo list frontend|
 | 2024/03/02 |         |         |        |      |       |      3  | D3 - Updated Todo list frontend|
 | 2024/03/03 |         |         |        |      |       |    0.5  | D3 - Presentation|
+| 2024/03/03 |   2     |         |        |      |       |         | D3 - Settings Page |
