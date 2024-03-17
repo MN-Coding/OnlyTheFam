@@ -71,7 +71,10 @@ fun EventDetails(navController: NavController, eventId: String) {
             Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
                 Text(text = eventDetails.description, style = MaterialTheme.typography.body1)
                 val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy h:mma")
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(Icons.Filled.AccessTime, contentDescription = "Time")
                     Text(
                         text = "Start: ${
@@ -82,7 +85,11 @@ fun EventDetails(navController: NavController, eventId: String) {
                         style = MaterialTheme.typography.body1
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(Icons.Filled.AccessTime, contentDescription = "Time")
                     Text(
                         text = "End: ${
@@ -93,11 +100,20 @@ fun EventDetails(navController: NavController, eventId: String) {
                         style = MaterialTheme.typography.body1
                     )
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(Icons.Filled.LocationOn, contentDescription = "Location")
                     Text(text = "Location: ${eventDetails.location}", style = MaterialTheme.typography.body1)
                 }
-                Text(text = "Participants: ${eventDetails.participants.joinToString(", ")}", style = MaterialTheme.typography.body1)
+
+                Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = "Participants: ${eventDetails.participants.joinToString(", ")}",
+                    style = MaterialTheme.typography.body1
+                )
                 val address = eventDetails.location
                 val encodedAddress = URLEncoder.encode(address, "UTF-8")
                 val mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=$encodedAddress&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C$encodedAddress&key=AIzaSyCg28OjKgjh8mYsAlrtDhtXF-0L2QMH1_Q"
