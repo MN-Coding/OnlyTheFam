@@ -1,6 +1,5 @@
 package com.example.onlythefam
 
-import android.app.Activity
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -40,15 +39,12 @@ import java.time.format.DateTimeFormatter
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.navigation.NavController
 import java.util.*
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.widget.Autocomplete
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -101,44 +97,29 @@ suspend fun submitTodo(eventName: String, description: String, startDateTime: St
     }
 }
 
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddTodo(navController: NavController) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
 
-    var eventName by remember { mutableStateOf("Enter Event Name") }
-    var location by remember { mutableStateOf("Enter Location") }
-    var startTime by remember { mutableStateOf(LocalDateTime.now()) }
-    var endTime by remember { mutableStateOf(LocalDateTime.now().plusHours(1)) }
+    var todoName by remember { mutableStateOf("Enter Todo Name") }
     var description by remember { mutableStateOf("") }
     var shareWith by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf(0) }
+
+    var dueTime by remember { mutableStateOf(LocalDateTime.now()) }
+
     val coroutineScope = rememberCoroutineScope()
 
-    // Initialize Places if not already done
-    if (!Places.isInitialized()) {
-        Places.initialize(context, context.getString(R.string.google_maps_key))
+    fun updateDueTime(year: Int, month: Int, day: Int, hour: Int, minute: Int) {
+        dueTime = LocalDateTime.of(year, month + 1, day, hour, minute)
     }
 
-    val fields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS)
-
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            val place = Autocomplete.getPlaceFromIntent(result.data!!)
-            location = place.address ?: ""
-        }
-    }
-
-    // Open Google Places Autocomplete
-    fun openPlacesAutocomplete() {
-        val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
-            .build(context)
-        launcher.launch(intent)
-    }
-
-    fun updateStartTime(year: Int, month: Int, day: Int, hour: Int, minute: Int) {
-        startTime = LocalDateTime.of(year, month + 1, day, hour, minute)
-    }
+    val eventOptions = listOf("Event 1", "Event 2", "Event 3")
+    var eventIndex by remember { mutableStateOf(0) }
+    var showDropdown by remember { mutableStateOf(false) }
 
     // Show day + time picker
     fun showDateTimePicker() {
@@ -151,7 +132,7 @@ fun AddTodo(navController: NavController) {
 
         DatePickerDialog(context, { _, year, monthOfYear, dayOfMonth ->
             TimePickerDialog(context, { _, hourOfDay, minute ->
-                updateStartTime(year, monthOfYear, dayOfMonth, hourOfDay, minute)
+                updateDueTime(year, monthOfYear, dayOfMonth, hourOfDay, minute)
             }, startHour, startMinute, false).show()
         }, startYear, startMonth, startDay).show()
     }
@@ -160,7 +141,7 @@ fun AddTodo(navController: NavController) {
         topBar = {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "Add Event",
+                    "Add Todo",
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     style = TextStyle(fontSize = 36.sp),
@@ -174,62 +155,56 @@ fun AddTodo(navController: NavController) {
                 .padding(20.dp)
                 .verticalScroll(scrollState, enabled = true)
         ) {
-            EditableTextField(fieldName = "Event Name", fieldVal = eventName, onChange = { updated -> eventName = updated })
-
-            Text("Start Time:", fontWeight = FontWeight.Bold)
-            OutlinedTextField(
-                value = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
-                onValueChange = { },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
-                trailingIcon = {
-                    IconButton(onClick = { showDateTimePicker() }) {
-                        Icon(Icons.Filled.DateRange, contentDescription = "Select Start Time")
-                    }
-                }
-            )
+            EditableTextField(fieldName = "Todo Name", fieldVal = todoName, onChange = { updated -> todoName = updated })
 
             Spacer(Modifier.height(5.dp))
 
-            Text("End Time:", fontWeight = FontWeight.Bold)
-            OutlinedTextField(
-                value = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
-                onValueChange = { },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
-                trailingIcon = {
-                    IconButton(onClick = { showDateTimePicker() }) {
-                        Icon(Icons.Filled.DateRange, contentDescription = "Select End Time")
+            Text("Event:", fontWeight = FontWeight.Bold)
+            Box {
+                OutlinedTextField(
+                    value = eventOptions[eventIndex],
+                    onValueChange = { },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,  // Make the TextField read-only
+                    trailingIcon = {
+                        IconButton(onClick = { showDropdown = true }) {
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = "Select Event")
+                        }
+                    }
+                )
+                DropdownMenu(
+                    expanded = showDropdown,
+                    onDismissRequest = { showDropdown = false }
+                ) {
+                    eventOptions.forEachIndexed { index, event ->
+                        DropdownMenuItem(onClick = {
+                            eventIndex = index
+                            showDropdown = false
+                        }) {
+                            Text(event)
+                        }
                     }
                 }
-            )
+            }
 
             Spacer(Modifier.height(5.dp))
-
-            Text("Location:", fontWeight = FontWeight.Bold)
-            OutlinedTextField(
-                value = location,
-                onValueChange = { location = it },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,  // Location is read-only. To edit have to click magnifying glass
-                trailingIcon = {
-                    IconButton(onClick = { openPlacesAutocomplete() }) {
-                        Icon(Icons.Filled.Search, contentDescription = "Search Location")
-                    }
-                }
-            )
-
-            Spacer(Modifier.height(5.dp))
-
-            EditableTextField(fieldName = "Share With", fieldVal = shareWith, onChange = { updated -> shareWith = updated })
 
             EditableTextField(fieldName = "Description", fieldVal = description, onChange = { updated -> description = updated })
 
-            Text("Tasks:", fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(5.dp))
+            EditableTextField(fieldName = "Price", fieldVal = description, onChange = { updated -> price = updated.toInt() })
 
-            Text("Cost Split:", fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(5.dp))
+            Text("Due Time:", fontWeight = FontWeight.Bold)
+            OutlinedTextField(
+                value = dueTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                onValueChange = { },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { showDateTimePicker() }) {
+                        Icon(Icons.Filled.DateRange, contentDescription = "Select Due Time")
+                    }
+                }
+            )
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Button(onClick = { navController.navigate("todo_event_screen") }) {
@@ -241,16 +216,16 @@ fun AddTodo(navController: NavController) {
                     println("making post request")
 
                     coroutineScope.launch {
-                        val startTimeFormatted = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                        val endTimeFormatted = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                        val success = submitEvent(eventName, description, startTimeFormatted, endTimeFormatted, location, shareWith)
-                        if (success) {
-                            println("[SUCCESSFUL] SUBMITTING EVENT")
-
-                        } else {
-                            println("[FAILED] SUBMITTING EVENT")
-
-                        }
+//                        val startTimeFormatted = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+//                        val endTimeFormatted = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+//                        val success = submitEvent(todoName, description, startTimeFormatted, endTimeFormatted, location, shareWith)
+//                        if (success) {
+//                            println("[SUCCESSFUL] SUBMITTING EVENT")
+//
+//                        } else {
+//                            println("[FAILED] SUBMITTING EVENT")
+//
+//                        }
                     }
                 }) {
                     Text("Create")
