@@ -2,7 +2,7 @@ package com.example.routes
 
 import com.example.data.model.AddEventReq
 import com.example.data.model.Event
-import com.example.data.schema.EventParticipants
+import com.example.data.schema.Event_Participants
 import com.example.data.schema.Events
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -191,7 +191,7 @@ fun Route.eventRoutes() {
                 // if the user_id is not null, insert the event and user_id into the event_participants table
                 if (userID != null) {
                     transaction {
-                        EventParticipants.insert { participant ->
+                        Event_Participants.insert { participant ->
                             participant[event_id] = eventData.eventID
                             participant[user_id] = userID
                         }
