@@ -28,7 +28,7 @@ import java.sql.*
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Todos() {
-    TodoPreview()
+    TodoPreview("Todos")
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -87,8 +87,8 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
                 EventDetails(navController = navController, eventId = eventId)
             }
         }
-        composable("add_todo") { TodoPage() }
-        composable("add_event") { AddEvent() }
+        composable("add_todo") { AddTodo(navController) }
+        composable("add_event") { AddEvent(navController) }
         composable("todo_event_screen") { TodoEventScreen(navController) }
     }
 }
@@ -102,7 +102,7 @@ fun BottomNavigation(navController: NavController) {
         BottomNavItem.Events,
         BottomNavItem.Family
     )
-    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family")
+    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family", "todo_event_screen", "add_event", "add_todo")
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
