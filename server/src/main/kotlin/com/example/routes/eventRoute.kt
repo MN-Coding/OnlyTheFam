@@ -1,6 +1,8 @@
 package com.example.routes
 
+import com.example.data.model.AddEventReq
 import com.example.data.model.Event
+import com.example.data.schema.EventParticipants
 import com.example.data.schema.Events
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -14,6 +16,8 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.selectAll
+import com.example.data.schema.Users
+import org.jetbrains.exposed.sql.select
 
 fun Route.eventRoutes() {
 
@@ -168,7 +172,7 @@ fun Route.eventRoutes() {
 
 
     post("/addevent") {
-        val eventData = call.receive<Event>()
+        val eventData = call.receive<AddEventReq>()
         transaction {
             Events.insert { event ->
                 event[event_id] = eventData.eventID
@@ -178,6 +182,23 @@ fun Route.eventRoutes() {
                 event[end_datetime] = eventData.endDatetime
                 event[location] = eventData.location
             }
+
+            val participantsNames = eventData.participants
+
+            for (name in participantsNames) {
+                // get the user_id for the name
+                val userID = Users.select { Users.name eq name }.singleOrNull()?.get(Users.userID)
+                // if the user_id is not null, insert the event and user_id into the event_participants table
+                if (userID != null) {
+                    transaction {
+                        EventParticipants.insert { participant ->
+                            participant[event_id] = eventData.eventID
+                            participant[user_id] = userID
+                        }
+                    }
+                }
+            }
+
         }
         call.respond(HttpStatusCode.Created)
     }
