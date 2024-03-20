@@ -64,9 +64,12 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SubmitEventRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String, val location: String)
+data class SubmitEventRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String, val location: String, val participants: List<String>)
 
-suspend fun submitEvent(eventName: String, description: String, startDateTime: String, endDateTime: String, location: String): Boolean {
+suspend fun submitEvent(eventName: String, description: String, startDateTime: String, endDateTime: String, location: String, participantString: String): Boolean {
+
+    // split participantString into a list of participants
+    val participants = participantString.split(",").map { it.trim() }
 
     val submitEventEndpoint = "http://${GlobalVariables.localIP}:5050/addevent"
     Log.d("SubmitEvent", "Endpoint: $submitEventEndpoint")
@@ -83,7 +86,7 @@ suspend fun submitEvent(eventName: String, description: String, startDateTime: S
         Log.d("SubmitEvent", "Attempting to submit event: $eventName")
         val response: HttpResponse = client.post(submitEventEndpoint) {
             contentType(ContentType.Application.Json)
-            setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime, location))
+            setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime, location, participants))
         }
         Log.d("SubmitEvent", "Response Status: ${response.status}")
 
@@ -244,7 +247,7 @@ fun AddEvent() {
                     coroutineScope.launch {
                         val startTimeFormatted = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                         val endTimeFormatted = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                        val success = submitEvent(eventName, description, startTimeFormatted, endTimeFormatted, location)
+                        val success = submitEvent(eventName, description, startTimeFormatted, endTimeFormatted, location, shareWith)
                         if (success) {
                             println("[SUCCESSFUL] SUBMITTING EVENT")
 
