@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import TodoEventScreen
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -24,10 +25,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import java.sql.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Todos() {
-    Text("Todos")
-
+    TodoPreview()
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -44,8 +45,8 @@ fun Family() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Add() {
-    AddEvent()
+fun Add(navController: NavController) {
+    TodoEventScreen(navController)
 }
 
 sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val title: String) {
@@ -68,7 +69,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
             Todos()
         }
         composable(BottomNavItem.Add.screen_route) {
-            Add()
+            Add(navController)
         }
         composable(BottomNavItem.Events.screen_route) {
             Events(navController = navController)
@@ -86,6 +87,9 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
                 EventDetails(navController = navController, eventId = eventId)
             }
         }
+        composable("add_todo") { TodoPage() }
+        composable("add_event") { AddEvent() }
+        composable("todo_event_screen") { TodoEventScreen(navController) }
     }
 }
 
