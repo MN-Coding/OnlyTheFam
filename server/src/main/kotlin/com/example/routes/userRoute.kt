@@ -90,7 +90,4 @@ fun Route.userRoutes() {
 
         call.respondText(Json.encodeToString(usersList), ContentType.Application.Json, status = HttpStatusCode.OK)
     }
-
-
-
 }
