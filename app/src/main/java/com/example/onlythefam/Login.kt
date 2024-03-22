@@ -153,6 +153,8 @@ private fun signIn(email: String, password: String, scaffoldState: ScaffoldState
         } catch (e: Exception) {
             e.printStackTrace()
             scaffoldState.snackbarHostState.showSnackbar("Sign-in failed: ${e.message}")
+            loading.value = false
         }
+        loading.value = false
     }
 }
