@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -15,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -34,6 +36,9 @@ import java.io.FileInputStream
 import java.io.File
 import java.util.*
 
+val loading = mutableStateOf(false)
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
     var email by remember { mutableStateOf("") }
@@ -77,6 +82,7 @@ fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
+                visualTransformation = PasswordVisualTransformation(),
                 label = { Text("Password") },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Go // Change to ImeAction.Next if you want it to go to the next field
@@ -94,6 +100,11 @@ fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Sign In")
+            }
+            if (loading.value) {
+                CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+            } else {
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -115,7 +126,8 @@ fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
 data class LoginRequest(val email: String, val password: String)
 
 private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, onlogin: () -> Unit) {
-    coroutineScope.launch {
+    loading.value = true
+    CoroutineScope(Dispatchers.Main).launch {
         val loginEndpoint = "http://${GlobalVariables.localIP}:5050/login"
         val client = HttpClient(CIO) {
             install(ContentNegotiation) {
@@ -129,8 +141,14 @@ private fun signIn(email: String, password: String, scaffoldState: ScaffoldState
                 setBody(LoginRequest(email, password))
             }
             client.close()
+            val status = response.status
+            if (status != HttpStatusCode.Accepted) {
+                loading.value = false
+                throw Exception("Error " + status.value.toString())
+            }
             GlobalVariables.userId = response.bodyAsText()
             scaffoldState.snackbarHostState.showSnackbar("Sign-in successful")
+            loading.value = false
             onlogin()
         } catch (e: Exception) {
             e.printStackTrace()
