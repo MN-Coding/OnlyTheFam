@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.data.model.User
+import com.example.data.model.Username
 import com.example.data.model.UserLogin
 import com.example.data.schema.Allergies
 import com.example.data.schema.Users
@@ -22,6 +23,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.reflect.jvm.internal.impl.resolve.scopes.MemberScope.Empty
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.selectAll
 
 @Serializable
 data class UserInfo(
@@ -77,6 +79,16 @@ fun Route.userRoutes() {
         else{
             call.respondText("Missing userID", status = HttpStatusCode.BadRequest)
         }
+    }
+
+    // get all names of users
+    get("/getallusernames") {
+        val usersList = transaction {
+            Users.selectAll()
+                .map { Username(it[Users.userID]) }
+        }
+
+        call.respondText(Json.encodeToString(usersList), ContentType.Application.Json, status = HttpStatusCode.OK)
     }
 
 
