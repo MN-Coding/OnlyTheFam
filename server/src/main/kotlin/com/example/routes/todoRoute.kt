@@ -19,6 +19,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.selectAll
 import com.example.data.schema.Users
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.select
 
 fun Route.todoRoutes() {
@@ -80,4 +81,25 @@ fun Route.todoRoutes() {
             call.respondText("Invalid request", status = HttpStatusCode.BadRequest)
         }
     }
+
+    // make route to get all todos by user id
+    get("/getTodosByUserID") {
+        val user_id = call.parameters["userID"]
+        if (user_id != null) {
+            val result = runBlocking {
+                withContext(Dispatchers.IO) {
+                    transaction {
+                        val resultSet = Todos.select { Todos.assigned_user_id eq user_id }
+                        resultSet.map { Todo(it[Todos.todo_id], it[Todos.event_id], it[Todos.name], it[Todos.description], it[Todos.price], it[Todos.assigned_user_id]) }
+                    }
+                }
+            }
+            call.respondText(Json.encodeToString(result), ContentType.Application.Json, status = HttpStatusCode.OK)
+        } else {
+            call.respondText("Invalid request", status = HttpStatusCode.BadRequest)
+        }
+    }
+
+    // give an example on how to make the above call
+    // curl -X GET "http://localhost:5050/getTodosByUserID?userID=1" -H  "accept: application/json"
 }
