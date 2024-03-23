@@ -6,9 +6,9 @@ import java.time.LocalDateTime
 
 @Serializable
 data class AddTodoReq(
-    val event_id : String,
+    val event_name : String,
     val name : String,
     val description : String?,
     val price : Int,
-    val assigned_user_id : String
+    val assigned_user_name : String
 )
