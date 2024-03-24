@@ -33,6 +33,17 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.navigation.NavController
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
+import java.net.URLEncoder
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.ui.Alignment
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -46,7 +57,7 @@ fun EventDetails(navController: NavController, eventId: String) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Event Details") },
+                title = { Text(text = event.value?.name ?: "Loading...") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
@@ -58,17 +69,66 @@ fun EventDetails(navController: NavController, eventId: String) {
     ) { innerPadding ->
         event.value?.let { eventDetails ->
             Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
-                Text(text = eventDetails.name, style = MaterialTheme.typography.h5)
-                Text(text = "Description: ${eventDetails.description}", style = MaterialTheme.typography.body1)
-                Text(text = "Start: ${eventDetails.startDatetime}", style = MaterialTheme.typography.body1)
-                Text(text = "End: ${eventDetails.endDatetime}", style = MaterialTheme.typography.body1)
-                Text(text = "Location: ${eventDetails.location}", style = MaterialTheme.typography.body1)
-                Text(text = "Participants: ${eventDetails.participants.joinToString(", ")}", style = MaterialTheme.typography.body1)
+                Text(text = eventDetails.description, style = MaterialTheme.typography.body1)
+                val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy h:mma")
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.AccessTime, contentDescription = "Time")
+                    Text(
+                        text = "Start: ${
+                            LocalDateTime.parse(eventDetails.startDatetime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).format(
+                                formatter
+                            )
+                        }",
+                        style = MaterialTheme.typography.body1
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.AccessTime, contentDescription = "Time")
+                    Text(
+                        text = "End: ${
+                            LocalDateTime.parse(eventDetails.endDatetime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")).format(
+                                formatter
+                            )
+                        }",
+                        style = MaterialTheme.typography.body1
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.LocationOn, contentDescription = "Location")
+                    Text(text = "Location: ${eventDetails.location}", style = MaterialTheme.typography.body1)
+                }
+
+                Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = "Participants: ${eventDetails.participants.joinToString(", ")}",
+                    style = MaterialTheme.typography.body1
+                )
+                val address = eventDetails.location
+                val encodedAddress = URLEncoder.encode(address, "UTF-8")
+                val mapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=$encodedAddress&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C$encodedAddress&key=AIzaSyCg28OjKgjh8mYsAlrtDhtXF-0L2QMH1_Q"
+                Image(
+                    painter = rememberAsyncImagePainter(mapUrl),
+                    contentDescription = "Event Location Map",
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .fillMaxWidth(),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     }
 }
-
 
 private suspend fun getEventById(eventId: String): EventResponse? {
     val client = HttpClient(CIO) {
