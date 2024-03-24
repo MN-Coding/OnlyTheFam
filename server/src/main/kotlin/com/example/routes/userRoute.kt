@@ -141,7 +141,7 @@ fun Route.userRoutes() {
     get("/getallusernames") {
         val usersList = transaction {
             Users.selectAll()
-                .map { Username(it[Users.userID]) }
+                .map { Username(it[Users.name]) }
         }
 
         call.respondText(Json.encodeToString(usersList), ContentType.Application.Json, status = HttpStatusCode.OK)

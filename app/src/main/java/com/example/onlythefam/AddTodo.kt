@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +47,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.navigation.NavController
 import java.util.*
 import io.ktor.client.*
+import io.ktor.client.call.body
+import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -102,7 +105,71 @@ suspend fun submitTodo(
     }
 }
 
+@Serializable
+data class Event(
+    val eventID: String,
+    val name: String,
+    val description: String?,
+    val startDatetime: String,
+    val endDatetime: String,
+    val location: String,
+)
 
+@Serializable
+data class Username(
+    val username: String
+)
+
+suspend fun getAllEvents(): List<String> {
+    val getAllEventsEndpoint = "http://${GlobalVariables.localIP}:5050/getallevents"
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    try {
+        val response: HttpResponse = client.get(getAllEventsEndpoint) {
+            contentType(ContentType.Application.Json)
+        }
+        val rawJson: String = response.bodyAsText() // Read the raw JSON response
+        println("Raw JSON response: $rawJson") // Print the raw JSON response
+
+        val events: List<Event> = response.body()
+        client.close()
+        return events.map { it.name } // map the List<Event> to a List<String> containing only the names
+    } catch (e: Exception) {
+        Log.e("GetAllEvents", "Exception during fetching all events", e)
+        return emptyList()
+    }
+}
+
+suspend fun getAllUsernames(): List<String> {
+    val getAllUsernamesEndpoint = "http://${GlobalVariables.localIP}:5050/getallusernames"
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    try {
+        val response: HttpResponse = client.get(getAllUsernamesEndpoint) {
+            contentType(ContentType.Application.Json)
+        }
+        val rawJson: String = response.bodyAsText() // Read the raw JSON response
+        println("Raw JSON response: $rawJson") // Print the raw JSON response
+
+        val usernames: List<Username> = response.body()
+        client.close()
+        return usernames.map { it.username } // map the List<Username> to a List<String> containing only the names
+    } catch (e: Exception) {
+        Log.e("GetAllUsernames", "Exception during fetching all usernames", e)
+        return emptyList()
+    }
+}
+
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AddTodo(navController: NavController) {
@@ -112,16 +179,31 @@ fun AddTodo(navController: NavController) {
     var todoName by remember { mutableStateOf("Enter Todo Name") }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
-    var assignedUser by remember { mutableStateOf("") }
 
 
     val coroutineScope = rememberCoroutineScope()
 
 
-    val eventOptions = listOf("Birthday Party", "Event 2", "Event 3")
+    var eventOptions by remember { mutableStateOf(listOf<String>()) }
+    var usernameOptions by remember { mutableStateOf(listOf<String>()) }
     var eventIndex by remember { mutableStateOf(0) }
-    var showDropdown by remember { mutableStateOf(false) }
+    var usernameIndex by remember { mutableStateOf(0) }
+    var showEventDropdown by remember { mutableStateOf(false) }
+    var showUsernameDropdown by remember { mutableStateOf(false) }
 
+    LaunchedEffect(key1 = Unit) {
+        coroutineScope.launch {
+            try {
+                val events = getAllEvents()
+                eventOptions = events.map { it }
+                val usernames = getAllUsernames()
+                usernameOptions = usernames.map { it }
+            } catch (e: Exception) {
+                Log.e("AddTodo", "Exception during fetching all events", e)
+                eventOptions = listOf("Error fetching events")
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -151,24 +233,24 @@ fun AddTodo(navController: NavController) {
             Text("Event:", fontWeight = FontWeight.Bold)
             Box {
                 OutlinedTextField(
-                    value = eventOptions[eventIndex],
+                    value = if (eventOptions.isNotEmpty()) eventOptions[eventIndex] else "",
                     onValueChange = { },
                     modifier = Modifier.fillMaxWidth(),
                     readOnly = true,  // Make the TextField read-only
                     trailingIcon = {
-                        IconButton(onClick = { showDropdown = true }) {
+                        IconButton(onClick = { showEventDropdown = true }) {
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = "Select Event")
                         }
                     }
                 )
                 DropdownMenu(
-                    expanded = showDropdown,
-                    onDismissRequest = { showDropdown = false }
+                    expanded = showEventDropdown,
+                    onDismissRequest = { showEventDropdown = false }
                 ) {
                     eventOptions.forEachIndexed { index, event ->
                         DropdownMenuItem(onClick = {
                             eventIndex = index
-                            showDropdown = false
+                            showEventDropdown = false
                         }) {
                             Text(event)
                         }
@@ -188,10 +270,33 @@ fun AddTodo(navController: NavController) {
                 fieldVal = price,
                 onChange = { updated -> price = updated })
 
-            EditableTextField(
-                fieldName = "Assigned User",
-                fieldVal = assignedUser,
-                onChange = { updated -> assignedUser = updated })
+            Text("Assigned User:", fontWeight = FontWeight.Bold)
+            Box {
+                OutlinedTextField(
+                    value = if (usernameOptions.isNotEmpty()) usernameOptions[usernameIndex] else "",
+                    onValueChange = { },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,  // Make the TextField read-only
+                    trailingIcon = {
+                        IconButton(onClick = { showUsernameDropdown = true }) {
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = "Select assigned user")
+                        }
+                    }
+                )
+                DropdownMenu(
+                    expanded = showUsernameDropdown,
+                    onDismissRequest = { showUsernameDropdown = false }
+                ) {
+                    usernameOptions.forEachIndexed { index, username ->
+                        DropdownMenuItem(onClick = {
+                            usernameIndex = index
+                            showUsernameDropdown = false
+                        }) {
+                            Text(username)
+                        }
+                    }
+                }
+            }
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Button(onClick = { navController.navigate("todo_event_screen") }) {
@@ -208,7 +313,7 @@ fun AddTodo(navController: NavController) {
                             todoName,
                             description,
                             price.toInt(),
-                            assignedUser
+                            usernameOptions[usernameIndex]
                         )
                         if (isSuccess) {
                             navController.navigate("todo_event_screen")
