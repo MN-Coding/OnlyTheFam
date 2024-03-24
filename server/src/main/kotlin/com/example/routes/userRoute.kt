@@ -1,6 +1,8 @@
 package com.example.routes
 
 import com.example.data.model.User
+import com.example.data.model.UserAllergies
+import com.example.data.model.UserBloodType
 import com.example.data.model.UserLogin
 import com.example.data.model.Username
 import com.example.data.schema.Allergies
@@ -23,6 +25,10 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.reflect.jvm.internal.impl.resolve.scopes.MemberScope.Empty
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.selectAll
 
 @Serializable
@@ -35,8 +41,39 @@ data class UserInfo(
 
 fun Route.userRoutes() {
 
-    put("/updateInfo"){
-        /* Pending */
+    put("/updateBloodType"){
+        val userInfo = call.receive<UserBloodType>()
+        val id = userInfo.userID
+        val newBloodType = userInfo.bloodType
+
+        val updatedEntries = transaction {
+            Users.update({ Users.userID eq id }){
+                it[bloodType] = newBloodType
+            }
+        }
+
+        if (updatedEntries > 0){
+            call.respond(HttpStatusCode.OK, "Blood type updated successfully")
+        }
+        else{
+            call.respond(HttpStatusCode.NotFound, "User not found")
+        }
+    }
+
+    post("/addAllergies"){
+        val userInfo = call.receive<UserAllergies>()
+        val id = userInfo.userID
+        val newAllergies = userInfo.allergies
+
+        for (newAllergy in newAllergies) {
+            transaction {
+                Allergies.insert {allergyEntry ->
+                    allergyEntry[userID] = id
+                    allergyEntry[allergy] = newAllergy
+                }
+            }
+        }
+        call.respond(HttpStatusCode.Created)
     }
 
     get("/getAllergies"){
