@@ -50,13 +50,13 @@ val temp_events = listOf(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun PreviewCard(modifier: Modifier = Modifier, title: String) {
+fun PreviewCard(m: Modifier = Modifier, title: String) {
     Column(
-        modifier = modifier,
+        modifier = m,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(title,
-            style = MaterialTheme.typography.h1,
+            fontWeight = FontWeight.Normal,
             fontSize = 17.sp,
             color = Color.Gray
         )

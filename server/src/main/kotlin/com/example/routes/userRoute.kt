@@ -1,8 +1,8 @@
 package com.example.routes
 
 import com.example.data.model.User
-import com.example.data.model.Username
 import com.example.data.model.UserLogin
+import com.example.data.model.Username
 import com.example.data.schema.Allergies
 import com.example.data.schema.Users
 import io.ktor.http.ContentType
@@ -29,7 +29,8 @@ import org.jetbrains.exposed.sql.selectAll
 data class UserInfo(
     val name: String,
     val email: String,
-    val bloodType: String
+    val bloodType: String,
+    val familyID: String
 )
 
 fun Route.userRoutes() {
@@ -64,7 +65,8 @@ fun Route.userRoutes() {
                         UserInfo(
                             name = row[Users.name],
                             email = row[Users.email],
-                            bloodType = row[Users.bloodType]
+                            bloodType = row[Users.bloodType],
+                            familyID = row[Users.familyId]
                         )
                     }.singleOrNull()
             }
@@ -78,6 +80,60 @@ fun Route.userRoutes() {
         }
         else{
             call.respondText("Missing userID", status = HttpStatusCode.BadRequest)
+        }
+    }
+
+    get("/emailExists"){
+        val email = call.parameters["email"]
+        if (email != null){
+            val userInfo = transaction{
+                Users.select { (Users.email eq email) }
+                    .map {row ->
+                        UserInfo(
+                            name = row[Users.name],
+                            email = row[Users.email],
+                            bloodType = row[Users.bloodType],
+                            familyID = row[Users.familyId]
+                        )
+                    }.singleOrNull()
+            }
+
+            if (userInfo != null) {
+                call.respond(userInfo)
+            }
+            else{
+                call.respondText("User not found", status = HttpStatusCode.NotFound)
+            }
+        }
+        else{
+            call.respondText("Missing email", status = HttpStatusCode.BadRequest)
+        }
+    }
+
+    get("/familyExists"){
+        val familyId = call.parameters["familyId"]
+        if (familyId != null){
+            val familyExists = transaction{
+                Users.select { (Users.familyId eq familyId) }
+                    .map {row ->
+                        UserInfo(
+                            name = row[Users.name],
+                            email = row[Users.email],
+                            bloodType = row[Users.bloodType],
+                            familyID = row[Users.familyId]
+                        )
+                    }.isNotEmpty()
+            }
+
+            if (familyExists) {
+                call.respond(status = HttpStatusCode.OK, "Exists")
+            }
+            else{
+                call.respondText("Family ID not found", status = HttpStatusCode.NotFound)
+            }
+        }
+        else{
+            call.respondText("Missing familyId", status = HttpStatusCode.BadRequest)
         }
     }
 

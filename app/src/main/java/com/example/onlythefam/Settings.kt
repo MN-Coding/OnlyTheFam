@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +58,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
@@ -165,7 +167,8 @@ fun StaticUserProfileField(fieldName: String, fieldVal: String) {
 data class UserInfo(
     val name: String,
     val email: String,
-    val bloodType: String
+    val bloodType: String,
+    val familyID: String
 )
 
 private suspend fun getUserInfo(userId: String): UserInfo? {
