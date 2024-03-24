@@ -27,8 +27,8 @@ import java.sql.*
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Todos() {
-    TodoPreview("Todos")
+fun Todos(navController: NavController) {
+    TodosPage(navController = navController)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -66,7 +66,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
             HomePage(navController)
         }
         composable(BottomNavItem.Todos.screen_route) {
-            Todos()
+            Todos(navController)
         }
         composable(BottomNavItem.Add.screen_route) {
             Add(navController)
@@ -87,6 +87,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
                 EventDetails(navController = navController, eventId = eventId)
             }
         }
+
         composable("add_todo") { AddTodo(navController) }
         composable("add_event") { AddEvent(navController) }
         composable("todo_event_screen") { TodoEventScreen(navController) }

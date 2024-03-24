@@ -1,9 +1,7 @@
 package com.example.routes
 
-import com.example.data.model.AddEventReq
 import com.example.data.model.AddTodoReq
 import com.example.data.model.Todo
-import com.example.data.schema.Event_Participants
 import com.example.data.schema.Todos
 import com.example.data.schema.Events
 import io.ktor.http.*
