@@ -56,43 +56,48 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SubmitTodoRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String, val location: String, val participants: List<String>)
+data class SubmitTodoRequest(
+    val event_name: String,
+    val name: String,
+    val description: String?,
+    val price: Int,
+    val assigned_user_name: String
+)
 
-suspend fun submitTodo(eventName: String, description: String, startDateTime: String, endDateTime: String, location: String, participantString: String): Boolean {
+suspend fun submitTodo(
+    eventName: String,
+    name: String,
+    description: String,
+    price: Int,
+    assigned_user_name: String
+): Boolean {
 
-    // split participantString into a list of participants
-    val participants = participantString.split(",").map { it.trim() }
-
-    val submitEventEndpoint = "http://${GlobalVariables.localIP}:5050/addevent"
-    Log.d("SubmitEvent", "Endpoint: $submitEventEndpoint")
+    val submitTodoEndpoint = "http://${GlobalVariables.localIP}:5050/addTodo"
+    Log.d("SubmitTodo", "Endpoint: $submitTodoEndpoint")
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json()
         }
     }
 
-    val eventID = "event" + UUID.randomUUID()
-    Log.d("SubmitEvent", "Generated Event ID: $eventID")
-
     try {
-        Log.d("SubmitEvent", "Attempting to submit event: $eventName")
-        val response: HttpResponse = client.post(submitEventEndpoint) {
+        val response: HttpResponse = client.post(submitTodoEndpoint) {
             contentType(ContentType.Application.Json)
-            setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime, location, participants))
+            setBody(SubmitTodoRequest(eventName, name, description, price, assigned_user_name))
         }
-        Log.d("SubmitEvent", "Response Status: ${response.status}")
+        Log.d("SubmitTodo", "Response Status: ${response.status}")
 
         // Close the client after the request
         client.close()
         val isSuccess = response.status.value in 200..299
         if (isSuccess) {
-            Log.d("SubmitEvent", "Event submission successful")
+            Log.d("SubmitTodo", "Todo submission successful")
         } else {
-            Log.d("SubmitEvent", "Event submission failed with status: ${response.status}")
+            Log.d("SubmitTodo", "Todo submission failed with status: ${response.status}")
         }
         return isSuccess
     } catch (e: Exception) {
-        Log.e("SubmitEvent", "Exception during event submission", e)
+        Log.e("SubmitTodo", "Exception during todo submission", e)
         return false
     }
 }
@@ -106,36 +111,17 @@ fun AddTodo(navController: NavController) {
 
     var todoName by remember { mutableStateOf("Enter Todo Name") }
     var description by remember { mutableStateOf("") }
-    var shareWith by remember { mutableStateOf("") }
-    var price by remember { mutableStateOf(0) }
+    var price by remember { mutableStateOf("") }
+    var assignedUser by remember { mutableStateOf("") }
 
-    var dueTime by remember { mutableStateOf(LocalDateTime.now()) }
 
     val coroutineScope = rememberCoroutineScope()
 
-    fun updateDueTime(year: Int, month: Int, day: Int, hour: Int, minute: Int) {
-        dueTime = LocalDateTime.of(year, month + 1, day, hour, minute)
-    }
 
-    val eventOptions = listOf("Event 1", "Event 2", "Event 3")
+    val eventOptions = listOf("Birthday Party", "Event 2", "Event 3")
     var eventIndex by remember { mutableStateOf(0) }
     var showDropdown by remember { mutableStateOf(false) }
 
-    // Show day + time picker
-    fun showDateTimePicker() {
-        val currentDateTime = Calendar.getInstance()
-        val startYear = currentDateTime.get(Calendar.YEAR)
-        val startMonth = currentDateTime.get(Calendar.MONTH)
-        val startDay = currentDateTime.get(Calendar.DAY_OF_MONTH)
-        val startHour = currentDateTime.get(Calendar.HOUR_OF_DAY)
-        val startMinute = currentDateTime.get(Calendar.MINUTE)
-
-        DatePickerDialog(context, { _, year, monthOfYear, dayOfMonth ->
-            TimePickerDialog(context, { _, hourOfDay, minute ->
-                updateDueTime(year, monthOfYear, dayOfMonth, hourOfDay, minute)
-            }, startHour, startMinute, false).show()
-        }, startYear, startMonth, startDay).show()
-    }
 
     Scaffold(
         topBar = {
@@ -155,7 +141,10 @@ fun AddTodo(navController: NavController) {
                 .padding(20.dp)
                 .verticalScroll(scrollState, enabled = true)
         ) {
-            EditableTextField(fieldName = "Todo Name", fieldVal = todoName, onChange = { updated -> todoName = updated })
+            EditableTextField(
+                fieldName = "Todo Name",
+                fieldVal = todoName,
+                onChange = { updated -> todoName = updated })
 
             Spacer(Modifier.height(5.dp))
 
@@ -189,22 +178,20 @@ fun AddTodo(navController: NavController) {
 
             Spacer(Modifier.height(5.dp))
 
-            EditableTextField(fieldName = "Description", fieldVal = description, onChange = { updated -> description = updated })
+            EditableTextField(
+                fieldName = "Description",
+                fieldVal = description,
+                onChange = { updated -> description = updated })
 
-            EditableTextField(fieldName = "Price", fieldVal = description, onChange = { updated -> price = updated.toInt() })
+            EditableTextField(
+                fieldName = "Price",
+                fieldVal = price,
+                onChange = { updated -> price = updated })
 
-            Text("Due Time:", fontWeight = FontWeight.Bold)
-            OutlinedTextField(
-                value = dueTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
-                onValueChange = { },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
-                trailingIcon = {
-                    IconButton(onClick = { showDateTimePicker() }) {
-                        Icon(Icons.Filled.DateRange, contentDescription = "Select Due Time")
-                    }
-                }
-            )
+            EditableTextField(
+                fieldName = "Assigned User",
+                fieldVal = assignedUser,
+                onChange = { updated -> assignedUser = updated })
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Button(onClick = { navController.navigate("todo_event_screen") }) {
@@ -216,19 +203,19 @@ fun AddTodo(navController: NavController) {
                     println("making post request")
 
                     coroutineScope.launch {
-//                        val startTimeFormatted = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-//                        val endTimeFormatted = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-//                        val success = submitEvent(todoName, description, startTimeFormatted, endTimeFormatted, location, shareWith)
-//                        if (success) {
-//                            println("[SUCCESSFUL] SUBMITTING EVENT")
-//
-//                        } else {
-//                            println("[FAILED] SUBMITTING EVENT")
-//
-//                        }
+                        val isSuccess = submitTodo(
+                            eventOptions[eventIndex],
+                            todoName,
+                            description,
+                            price.toInt(),
+                            assignedUser
+                        )
+                        if (isSuccess) {
+                            navController.navigate("todo_event_screen")
+                        }
                     }
                 }) {
-                    Text("Create")
+                    Text("Submit")
                 }
             }
         }
