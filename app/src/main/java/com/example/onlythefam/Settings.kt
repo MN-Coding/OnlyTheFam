@@ -149,11 +149,11 @@ fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
                 ProfileDropdownMenu(
                     menuName = "Blood Type",
                     menuOptions = bloodTypeOptions,
-                    placeholder = bloodType,
-                    onSelect = {
-                        newBloodType -> bloodType = newBloodType
-                        changeBloodType(uid, newBloodType, coroutineScope)
-                    })
+                    placeholder = bloodType
+                ) { newBloodType ->
+                    bloodType = newBloodType
+                    changeBloodType(uid, newBloodType, coroutineScope)
+                }
                 AddItemDialogListField(
                     fieldName = "Allergies",
                     initialFieldVal = allergies, //comma-separated string
@@ -219,38 +219,52 @@ fun ProfileDropdownMenu(menuName: String, menuOptions: List<String>, placeholder
     var expanded by remember { mutableStateOf(false) }
     var selectedText by remember { mutableStateOf(placeholder) }
 
-    Text(menuName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = {
-            expanded = !expanded
-        }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        OutlinedTextField(
-            readOnly = true,
-            value = placeholder,
-            onValueChange = { },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            modifier = Modifier.fillMaxWidth()
+        Column (
+            modifier = Modifier
+                .weight(1f)
+                .wrapContentWidth(Alignment.Start)
         )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            }
-        ) {
-            menuOptions.forEach { option ->
-                DropdownMenuItem(
-                    onClick = {
-                        selectedText = option
+        {
+            Text(menuName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = {
+                    expanded = !expanded
+                }
+            ) {
+                OutlinedTextField(
+                    readOnly = true,
+                    value = placeholder,
+                    onValueChange = { },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = {
                         expanded = false
-                        onSelect(option)
                     }
                 ) {
-                    Text(text = option)
+                    menuOptions.forEach { option ->
+                        DropdownMenuItem(
+                            onClick = {
+                                selectedText = option
+                                expanded = false
+                                onSelect(option)
+                            }
+                        ) {
+                        Text(text = option)
+                        }
+                    }
                 }
             }
         }
