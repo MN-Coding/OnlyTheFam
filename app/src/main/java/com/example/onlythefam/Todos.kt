@@ -137,12 +137,12 @@ fun ExpandableCard(
 
             if (expanded) {
                 Text(
-                    text = description,
+                    text = "description: $description",
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Text(
-                    text = price,
+                    text = "cost: $price",
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
