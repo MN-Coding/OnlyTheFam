@@ -1,14 +1,10 @@
 package com.example.onlythefam
 
-
-// make a kotlin composable resembling that of an email inbox, with previews on the left column and actual content on the right
-// the previews should be clickable and should change the content on the right
-
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -18,72 +14,168 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.onlythefam.ui.theme.OnlyTheFamTheme
-import java.sql.*
-import java.util.*
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class InviteResponse(
+    val invite_id: String,
+    val event_id: String? = null,
+    val todo_id: String? = null,
+    val sender_user_id: String,
+    val receiver_user_id: String,
+    val status: String,
+    val sender_user_name: String,
+    val event: EventDetails? = null,
+    val todo: TodoDetails? = null
+)
+
+@Serializable
+data class TodoDetails(
+    val name: String,
+    val description: String?,
+    val price: Int
+)
+
+@Serializable
+data class EventDetails(
+    val event_name: String,
+    val event_details: String,
+    val location: String,
+    val event_start_date: String,
+    val event_end_date: String
+)
+suspend fun getAllInvites(): List<InviteResponse> {
+    val getInvitesEndpoint = "http://${GlobalVariables.localIP}:5050/invites/${GlobalVariables.userId?.trim('"')}"
+
+    println(getInvitesEndpoint)
+
+
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    try {
+        val response: HttpResponse = client.get(getInvitesEndpoint) {
+            contentType(ContentType.Application.Json)
+        }
+        val rawJson: String = response.bodyAsText() // Read the raw JSON response
+        println("Raw JSON response: $rawJson") // Print the raw JSON response
+
+        val invites: List<InviteResponse> = response.body()
+        client.close()
+        return invites
+    } catch (e: Exception) {
+        Log.e("GetAllEvents", "Exception during fetching all events", e)
+        return emptyList()
+    }
+}
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Inbox(navController: NavHostController) {
-    val scrollState = rememberScrollState()
-    var selectedEmail by remember { mutableStateOf("Email 1") } // Default selected email
+fun Inbox(navController: NavController) {
 
-    Row(
-        modifier = Modifier
-            .padding(30.dp, 45.dp)
+    val coroutineScope = rememberCoroutineScope()
 
-    ) {
-        // Left column for email previews
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 16.dp)
-                // .verticalScroll(scrollState, enabled = true),
-        ) {
-            items(listOf("Email 1", "Email 2", "Email 3")) { email ->
-                InboxPreviewCard(Modifier.fillMaxWidth(), email) {
-                    selectedEmail = email
-                }
-                Spacer(modifier = Modifier.height(16.dp))
+    var invitations by remember { mutableStateOf(listOf<InviteResponse>()) }
+
+    LaunchedEffect(key1 = Unit) {
+        coroutineScope.launch {
+            try {
+                invitations = getAllInvites()
+            } catch (e: Exception) {
+                Log.e("GetPendingInvitations", "Exception during fetching all invitations", e)
             }
         }
+    }
 
-        // Right column for selected email content
-        Box(
-            modifier = Modifier
-                .weight(2f)
-                .fillMaxHeight(0.75f)
-                .border(BorderStroke(1.dp, Color.Black)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Content of $selectedEmail", fontSize = 20.sp)
+
+
+    LazyColumn(
+        modifier = Modifier
+            .padding(30.dp, 45.dp)
+            .fillMaxSize()
+    ) {
+        items(invitations) { invitation ->
+            InvitationCard(invitation)
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-fun InboxPreviewCard(modifier: Modifier, title: String, onClick: () -> Unit) {
+fun InvitationCard(invitation: InviteResponse) {
+    var isExpanded by remember { mutableStateOf(false) }
+
     Card(
-        modifier = modifier
-            .clickable { onClick() },
+        modifier = Modifier
+            .fillMaxWidth() // This makes the card as wide as the screen
+            .padding(16.dp),
         border = BorderStroke(1.dp, Color.Black),
         shape = RoundedCornerShape(8.dp),
         backgroundColor = Color.White
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(title, fontSize = 20.sp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(invitation.event?.event_name ?: invitation.todo?.name ?: "", fontSize = 20.sp)
+                IconButton(onClick = { isExpanded = !isExpanded }) {
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                }
+            }
+            if (isExpanded) {
+                if (invitation.event != null) {
+                    Text("Event Details: ${invitation.event.event_details}")
+                    Text("Event Start Date: ${invitation.event.event_start_date}")
+                    Text("Location: ${invitation.event.location}")
+                } else if (invitation.todo != null) {
+                    Text("Todo Description: ${invitation.todo.description}")
+                    Text("Price: ${invitation.todo.price}")
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    IconButton(
+                        onClick = { /* Handle Accept */ },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(Icons.Default.Check, contentDescription = "Accept", tint = Color.Green)
+                    }
+                    IconButton(
+                        onClick = { /* Handle Reject */ },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "Reject", tint = Color.Red)
+                    }
+                }
+            }
         }
     }
 }

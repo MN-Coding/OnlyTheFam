@@ -2,7 +2,9 @@ package com.example.routes
 
 import com.example.data.model.AddEventReq
 import com.example.data.model.Event
+import com.example.data.model.EventDetails
 import com.example.data.model.InviteResponse
+import com.example.data.model.TodoDetails
 import com.example.data.schema.Event_Participants
 import com.example.data.schema.Events
 import com.example.data.schema.Invites
@@ -21,6 +23,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.selectAll
 import com.example.data.schema.Users
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.update
@@ -48,18 +51,50 @@ fun Route.inviteRoutes() {
         val userId = call.parameters["user_id"]
         if (userId != null) {
             val pendingInvites = transaction {
-                Invites.select {
-                    (Invites.receiver_user_id eq userId) and (Invites.status eq "pending")
-                }.map {
-                    InviteResponse(
-                        invite_id = it[Invites.invite_id],
-                        event_id = it[Invites.event_id],
-                        todo_id = it[Invites.todo_id],
-                        sender_user_id = it[Invites.sender_user_id],
-                        receiver_user_id = it[Invites.receiver_user_id],
-                        status = it[Invites.status]
-                    )
-                }
+                Invites
+                    .join(Users, JoinType.INNER, additionalConstraint = { Invites.sender_user_id eq Users.userID })
+                    .join(Events, JoinType.LEFT, additionalConstraint = { Invites.event_id eq Events.event_id })
+                    .join(Todos, JoinType.LEFT, additionalConstraint = { Invites.todo_id eq Todos.todo_id })
+                    .select {
+                        (Invites.receiver_user_id eq userId) and (Invites.status eq "pending")
+                    }.map {
+                        val event = it[Invites.event_id]?.let { eventId ->
+                            transaction {
+                                Events.select { Events.event_id eq eventId }.singleOrNull()?.let { row ->
+                                    EventDetails(
+                                        event_name = row[Events.name],
+                                        event_details = row[Events.description] ?: "",
+                                        location = row[Events.location],
+                                        event_start_date = row[Events.start_datetime],
+                                        event_end_date = row[Events.end_datetime],
+                                    )
+                                }
+                            }
+                        }
+
+                        val todo = it[Invites.todo_id]?.let { todoId ->
+                            transaction {
+                                Todos.select { Todos.todo_id eq todoId }.singleOrNull()?.let { row ->
+                                    TodoDetails(
+                                        name = row[Todos.name],
+                                        description = row[Todos.description],
+                                        price = row[Todos.price]
+                                    )
+                                }
+                            }
+                        }
+                        InviteResponse(
+                            invite_id = it[Invites.invite_id],
+                            event_id = it[Invites.event_id],
+                            todo_id = it[Invites.todo_id],
+                            sender_user_id = it[Invites.sender_user_id],
+                            receiver_user_id = it[Invites.receiver_user_id],
+                            status = it[Invites.status],
+                            sender_user_name = it[Users.name],
+                            event = event,
+                            todo = todo
+                        )
+                    }
             }
             call.respond(HttpStatusCode.OK, pendingInvites)
         } else {

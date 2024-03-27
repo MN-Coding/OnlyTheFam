@@ -9,5 +9,8 @@ data class InviteResponse(
     val todo_id: String?,
     val sender_user_id: String,
     val receiver_user_id: String,
-    val status: String
+    val status: String,
+    val sender_user_name: String,
+    val event: EventDetails?,
+    val todo: TodoDetails?
 )
