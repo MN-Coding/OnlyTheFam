@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SubmitEventRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String, val location: String, val participants: List<String>)
+data class SubmitEventRequest(val eventID: String, val name: String, val description: String, val startDatetime: String, val endDatetime: String, val location: String, val participants: List<String>, val creatorID: String)
 
 suspend fun submitEvent(eventName: String, description: String, startDateTime: String, endDateTime: String, location: String, participantString: String): Boolean {
 
@@ -84,21 +84,26 @@ suspend fun submitEvent(eventName: String, description: String, startDateTime: S
 
     try {
         Log.d("SubmitEvent", "Attempting to submit event: $eventName")
-        val response: HttpResponse = client.post(submitEventEndpoint) {
-            contentType(ContentType.Application.Json)
-            setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime, location, participants))
-        }
-        Log.d("SubmitEvent", "Response Status: ${response.status}")
+        if (GlobalVariables.userId != null) {
+            val response: HttpResponse = client.post(submitEventEndpoint) {
+                contentType(ContentType.Application.Json)
+                setBody(SubmitEventRequest(eventID, eventName, description, startDateTime, endDateTime, location, participants,
+                    GlobalVariables.userId!!.toString()
+                ))
+            }
+            Log.d("SubmitEvent", "Response Status: ${response.status}")
 
-        // Close the client after the request
-        client.close()
-        val isSuccess = response.status.value in 200..299
-        if (isSuccess) {
-            Log.d("SubmitEvent", "Event submission successful")
-        } else {
-            Log.d("SubmitEvent", "Event submission failed with status: ${response.status}")
+            // Close the client after the request
+            client.close()
+            val isSuccess = response.status.value in 200..299
+            if (isSuccess) {
+                Log.d("SubmitEvent", "Event submission successful")
+            } else {
+                Log.d("SubmitEvent", "Event submission failed with status: ${response.status}")
+            }
+            return isSuccess
         }
-        return isSuccess
+        return false
     } catch (e: Exception) {
         Log.e("SubmitEvent", "Exception during event submission", e)
         return false

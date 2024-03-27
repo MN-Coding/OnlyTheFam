@@ -55,7 +55,9 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
     object Todos : BottomNavItem("todos", Icons.Rounded.List, "Todos")
     object Add : BottomNavItem("add", Icons.Rounded.Add, "Add")
     object Events : BottomNavItem("events", Icons.Rounded.Event, "Events")
+    object Inbox : BottomNavItem("inbox", Icons.Rounded.Inbox, "Inbox")
     object Family : BottomNavItem("family", Icons.Rounded.Group, "Family")
+
 }
 
 
@@ -92,6 +94,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
         composable("add_todo") { AddTodo(navController) }
         composable("add_event") { AddEvent(navController) }
         composable("todo_event_screen") { TodoEventScreen(navController) }
+        composable("inbox") { Inbox(navController) }
     }
 }
 
@@ -102,9 +105,11 @@ fun BottomNavigation(navController: NavController) {
         BottomNavItem.Todos,
         BottomNavItem.Add,
         BottomNavItem.Events,
-        BottomNavItem.Family
+        BottomNavItem.Family,
+        BottomNavItem.Inbox
     )
-    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family", "todo_event_screen", "add_event", "add_todo")
+    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family", "todo_event_screen",
+        "add_event", "add_todo", "inbox")
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route

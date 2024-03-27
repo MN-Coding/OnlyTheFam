@@ -9,7 +9,8 @@ object Todos : Table() {
     val name = text("name")
     val description = text("description").nullable()
     val price = integer("price")
-    val assigned_user_id = text("assigned_user_id").references(Users.userID)
+    val assigned_user_id = text("assigned_user_id").references(Users.userID).nullable()
+    val creator_id = text("creator_id").references(Users.userID)
 
     override val primaryKey = PrimaryKey(todo_id)
 }

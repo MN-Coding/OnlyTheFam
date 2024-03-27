@@ -12,5 +12,6 @@ data class AddEventReq(
     val startDatetime: String,
     val endDatetime: String,
     val location: String,
-    val participants: List<String>
+    val participants: List<String>,
+    val creatorID: String
 )
