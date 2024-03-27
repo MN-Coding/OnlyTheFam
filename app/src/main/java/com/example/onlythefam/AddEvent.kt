@@ -316,7 +316,7 @@ fun AddEvent(navController: NavController) {
                         val success = submitEvent(eventName, description, startTimeFormatted, endTimeFormatted, location, shareWith)
                         if (success) {
                             println("[SUCCESSFUL] SUBMITTING EVENT")
-                            navController.navigate("todo_event_screen")
+                            navController.navigate("events")
 
                         } else {
                             println("[FAILED] SUBMITTING EVENT")

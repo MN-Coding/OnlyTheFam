@@ -1,6 +1,7 @@
 package com.example.onlythefam
 
 import TodoEventScreen
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -147,6 +148,7 @@ object GlobalVariables {
     val localIP: String? = "10.0.2.2"
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {
