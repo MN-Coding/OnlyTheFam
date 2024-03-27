@@ -10,5 +10,6 @@ data class AddTodoReq(
     val name : String,
     val description : String?,
     val price : Int,
-    val assigned_user_name : String
+    val assigned_user_name : String,
+    val creator_id : String
 )

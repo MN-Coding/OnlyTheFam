@@ -58,6 +58,7 @@ data class TodosResponse(
     val description: String,
     val price: Int,
     val assigned_user_id: String,
+    val creator_id: String,
 )
 
 // For UI state management

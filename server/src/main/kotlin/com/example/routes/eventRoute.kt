@@ -4,6 +4,7 @@ import com.example.data.model.AddEventReq
 import com.example.data.model.Event
 import com.example.data.schema.Event_Participants
 import com.example.data.schema.Events
+import com.example.data.schema.Invites
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -24,7 +25,7 @@ fun Route.eventRoutes() {
     get("/getallevents") {
         val eventsList = transaction {
             Events.selectAll()
-                .map { Event(it[Events.event_id], it[Events.name], it[Events.description], it[Events.start_datetime].toString(), it[Events.end_datetime].toString(), it[Events.location]) }
+                .map { Event(it[Events.event_id], it[Events.name], it[Events.description], it[Events.start_datetime].toString(), it[Events.end_datetime].toString(), it[Events.location], it[Events.creator_id]) }
         }
 
         call.respondText(Json.encodeToString(eventsList), ContentType.Application.Json, status = HttpStatusCode.OK)
@@ -181,25 +182,58 @@ fun Route.eventRoutes() {
                 event[start_datetime] = eventData.startDatetime
                 event[end_datetime] = eventData.endDatetime
                 event[location] = eventData.location
+                event[creator_id] = eventData.creatorID.trim('"')
             }
+
+            print("ADDING EVENT ---------------------")
+            print(eventData)
 
             val participantsNames = eventData.participants
 
-            for (name in participantsNames) {
-                // get the user_id for the name
-                val userID = Users.select { Users.name eq name }.singleOrNull()?.get(Users.userID)
-                // if the user_id is not null, insert the event and user_id into the event_participants table
-                if (userID != null) {
-                    transaction {
-                        Event_Participants.insert { participant ->
-                            participant[event_id] = eventData.eventID
-                            participant[user_id] = userID
-                        }
-                    }
+            // obtain each participant's user_id and add them to the event if exists
+            for (participantName in participantsNames) {
+                val user_id = Users.select { Users.name eq participantName }
+                    .map { it[Users.userID] }
+                    .firstOrNull()
+
+                if (user_id == null) {
+                    continue
+                }
+
+                println("checking creator -------------- ${eventData.creatorID.trim('"')}" )
+                println("checking creator 2 -------------- ${eventData.creatorID}" )
+
+                Invites.insert{
+                    it[invite_id] = java.util.UUID.randomUUID().toString()
+                    it[event_id] = eventData.eventID
+                    it[sender_user_id] = eventData.creatorID.trim('"')
+                    it[receiver_user_id] = user_id
+                    it[status] = "pending"
                 }
             }
-
         }
         call.respond(HttpStatusCode.Created)
+    }
+
+    // make route to create event for single userID
+    post("/createEvent") {
+        val req = call.receive<AddEventReq>()
+        val eventUUID = java.util.UUID.randomUUID().toString()
+        transaction {
+            Events.insert {
+                it[event_id] = eventUUID
+                it[name] = req.name
+                it[description] = req.description
+                it[start_datetime] = req.startDatetime
+                it[end_datetime] = req.endDatetime
+                it[location] = req.location
+                it[creator_id] = req.creatorID.trim('"')
+            }
+            Event_Participants.insert {
+                it[Event_Participants.event_id] = eventUUID
+                it[Event_Participants.user_id] = req.creatorID.trim('"')
+            }
+        }
+        call.respondText("Event created", status = HttpStatusCode.Created)
     }
 }

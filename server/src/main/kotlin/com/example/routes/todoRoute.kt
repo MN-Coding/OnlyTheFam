@@ -4,6 +4,7 @@ import com.example.data.model.AddTodoReq
 import com.example.data.model.Todo
 import com.example.data.schema.Todos
 import com.example.data.schema.Events
+import com.example.data.schema.Invites
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -26,7 +27,7 @@ fun Route.todoRoutes() {
     get("/getAllTodos") {
         val todosList = transaction {
             Todos.selectAll()
-                .map { Todo(it[Todos.todo_id], it[Todos.event_id], it[Todos.name], it[Todos.description], it[Todos.price], it[Todos.assigned_user_id]) }
+                .map { Todo(it[Todos.todo_id], it[Todos.event_id], it[Todos.name], it[Todos.description], it[Todos.price], it[Todos.assigned_user_id], it[Todos.creator_id]) }
         }
 
         call.respondText(Json.encodeToString(todosList), ContentType.Application.Json, status = HttpStatusCode.OK)
@@ -38,7 +39,7 @@ fun Route.todoRoutes() {
         if (todo_id != null) {
             val result = withContext(Dispatchers.IO) {
                 val resultSet = Todos.select { Todos.todo_id eq todo_id }
-                resultSet.map { Todo(it[Todos.todo_id], it[Todos.event_id], it[Todos.name], it[Todos.description], it[Todos.price], it[Todos.assigned_user_id]) }
+                resultSet.map { Todo(it[Todos.todo_id], it[Todos.event_id], it[Todos.name], it[Todos.description], it[Todos.price], it[Todos.assigned_user_id], it[Todos.creator_id]) }
             }
             call.respondText(Json.encodeToString(result), ContentType.Application.Json, status = HttpStatusCode.OK)
         } else {
@@ -64,6 +65,9 @@ fun Route.todoRoutes() {
         }
         if (event_id_res.isNotEmpty() && user_id_res.isNotEmpty()) {
             val todoUUID = java.util.UUID.randomUUID().toString()
+            println("req ------------------" + req)
+            println("creator id trimmed ------------------" + req.creator_id.trim('"'))
+            println("creator id ------------------" + req.creator_id)
             transaction {
                 Todos.insert {
                     it[todo_id] = todoUUID
@@ -71,7 +75,14 @@ fun Route.todoRoutes() {
                     it[name] = req.name
                     it[description] = req.description
                     it[price] = req.price
-                    it[assigned_user_id] = user_id_res[0]
+                    it[creator_id] = req.creator_id.trim('"')
+                }
+                Invites.insert {
+                    it[Invites.invite_id] = java.util.UUID.randomUUID().toString()
+                    it[Invites.todo_id] = todoUUID
+                    it[Invites.sender_user_id] = req.creator_id.trim('"')
+                    it[Invites.receiver_user_id] = user_id_res[0]
+                    it[Invites.status] = "pending"
                 }
             }
             call.respondText("Todo added", status = HttpStatusCode.OK)
@@ -88,7 +99,7 @@ fun Route.todoRoutes() {
                 withContext(Dispatchers.IO) {
                     transaction {
                         val resultSet = Todos.select { Todos.assigned_user_id eq user_id }
-                        resultSet.map { Todo(it[Todos.todo_id], it[Todos.event_id], it[Todos.name], it[Todos.description], it[Todos.price], it[Todos.assigned_user_id]) }
+                        resultSet.map { Todo(it[Todos.todo_id], it[Todos.event_id], it[Todos.name], it[Todos.description], it[Todos.price], it[Todos.assigned_user_id], it[Todos.creator_id]) }
                     }
                 }
             }
@@ -97,7 +108,4 @@ fun Route.todoRoutes() {
             call.respondText("Invalid request", status = HttpStatusCode.BadRequest)
         }
     }
-
-    // give an example on how to make the above call
-    // curl -X GET "http://localhost:5050/getTodosByUserID?userID=1" -H  "accept: application/json"
 }

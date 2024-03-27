@@ -55,8 +55,9 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
     object Todos : BottomNavItem("todos", Icons.Rounded.List, "Todos")
     object Add : BottomNavItem("add", Icons.Rounded.Add, "Add")
     object Events : BottomNavItem("events", Icons.Rounded.Event, "Events")
-    object Family : BottomNavItem("family", Icons.Rounded.Group, "Family")
     object Inbox : BottomNavItem("inbox", Icons.Rounded.Inbox, "Inbox")
+    object Family : BottomNavItem("family", Icons.Rounded.Group, "Family")
+
 }
 
 

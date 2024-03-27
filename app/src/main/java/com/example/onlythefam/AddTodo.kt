@@ -64,7 +64,8 @@ data class SubmitTodoRequest(
     val name: String,
     val description: String?,
     val price: Int,
-    val assigned_user_name: String
+    val assigned_user_name: String,
+    val creator_id: String
 )
 
 suspend fun submitTodo(
@@ -72,7 +73,8 @@ suspend fun submitTodo(
     name: String,
     description: String,
     price: Int,
-    assigned_user_name: String
+    assigned_user_name: String,
+    creatorID: String = GlobalVariables.userId!!.toString()
 ): Boolean {
 
     val submitTodoEndpoint = "http://${GlobalVariables.localIP}:5050/addTodo"
@@ -86,7 +88,7 @@ suspend fun submitTodo(
     try {
         val response: HttpResponse = client.post(submitTodoEndpoint) {
             contentType(ContentType.Application.Json)
-            setBody(SubmitTodoRequest(eventName, name, description, price, assigned_user_name))
+            setBody(SubmitTodoRequest(eventName, name, description, price, assigned_user_name, creatorID))
         }
         Log.d("SubmitTodo", "Response Status: ${response.status}")
 
@@ -113,6 +115,7 @@ data class Event(
     val startDatetime: String,
     val endDatetime: String,
     val location: String,
+    val creatorID: String
 )
 
 @Serializable
@@ -313,7 +316,8 @@ fun AddTodo(navController: NavController) {
                             todoName,
                             description,
                             price.toInt(),
-                            usernameOptions[usernameIndex]
+                            usernameOptions[usernameIndex],
+                            GlobalVariables.userId!!.toString()
                         )
                         if (isSuccess) {
                             navController.navigate("todo_event_screen")
