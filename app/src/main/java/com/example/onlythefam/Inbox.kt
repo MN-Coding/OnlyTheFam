@@ -26,11 +26,14 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -62,6 +65,15 @@ data class EventDetails(
     val event_start_date: String,
     val event_end_date: String
 )
+
+@Serializable
+data class AcceptRejectInvite(
+    val invite_id: String,
+    val event_id: String?,
+    val todo_id: String?,
+    val receiver_user_id: String,
+)
+
 suspend fun getAllInvites(): List<InviteResponse> {
     val getInvitesEndpoint = "http://${GlobalVariables.localIP}:5050/invites/${GlobalVariables.userId?.trim('"')}"
 
@@ -87,6 +99,44 @@ suspend fun getAllInvites(): List<InviteResponse> {
     } catch (e: Exception) {
         Log.e("GetAllEvents", "Exception during fetching all events", e)
         return emptyList()
+    }
+}
+
+suspend fun acceptInvite(
+    invite_id: String,
+    event_id: String?,
+    todo_id: String?,
+    receiver_user_id: String
+): Boolean {
+
+    val acceptInviteEndpoint = "http://${GlobalVariables.localIP}:5050/acceptInvite"
+
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    try {
+        val response: HttpResponse = client.post(acceptInviteEndpoint) {
+            contentType(ContentType.Application.Json)
+            setBody(AcceptRejectInvite(invite_id, event_id, todo_id, receiver_user_id))
+        }
+
+        Log.d("Accept Invite", "Response Status: ${response.status}")
+
+        // Close the client after the request
+        client.close()
+        val isSuccess = response.status.value in 200..299
+        if (isSuccess) {
+            Log.d("Accept Invite", "Accept Invite successful")
+        } else {
+            Log.d("Accept Invite", "Accept Invite failed with status: ${response.status}")
+        }
+        return isSuccess
+    } catch (e: Exception) {
+        Log.e("Accept Invite", "Exception during Accept Invite", e)
+        return false
     }
 }
 
@@ -117,21 +167,30 @@ fun Inbox(navController: NavController) {
             .fillMaxSize()
     ) {
         items(invitations) { invitation ->
-            InvitationCard(invitation)
+            InvitationCard(invitation, coroutineScope = coroutineScope)
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-fun InvitationCard(invitation: InviteResponse) {
+fun InvitationCard(invitation: InviteResponse, coroutineScope: CoroutineScope) {
     var isExpanded by remember { mutableStateOf(false) }
+
+    var isEvent = invitation.event != null
+
+    // Determine the border color based on whether it's an event or a task
+    val borderColor = when {
+        isEvent -> Color.Blue
+        !isEvent -> Color.Green
+        else -> Color.Black
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth() // This makes the card as wide as the screen
             .padding(16.dp),
-        border = BorderStroke(1.dp, Color.Black),
+        border = BorderStroke(1.dp, borderColor),
         shape = RoundedCornerShape(8.dp),
         backgroundColor = Color.White
     ) {
@@ -143,12 +202,14 @@ fun InvitationCard(invitation: InviteResponse) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(invitation.event?.event_name ?: invitation.todo?.name ?: "", fontSize = 20.sp)
+                Text(
+                    if (isEvent) "Event: ${invitation.event?.event_name}" else "Invite: ${invitation.todo?.name}", fontSize = 20.sp)
                 IconButton(onClick = { isExpanded = !isExpanded }) {
                     Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
                 }
             }
             if (isExpanded) {
+                Text("From: ${invitation.sender_user_name}")
                 if (invitation.event != null) {
                     Text("Event Details: ${invitation.event.event_details}")
                     Text("Event Start Date: ${invitation.event.event_start_date}")
@@ -163,7 +224,11 @@ fun InvitationCard(invitation: InviteResponse) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     IconButton(
-                        onClick = { /* Handle Accept */ },
+                        onClick = { coroutineScope.launch { GlobalVariables.userId?.trim('"')?.let {
+                            acceptInvite(invitation.invite_id, invitation.event_id, invitation.invite_id,
+                                it
+                            )
+                        } } },
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(Icons.Default.Check, contentDescription = "Accept", tint = Color.Green)

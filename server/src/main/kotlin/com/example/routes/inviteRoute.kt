@@ -1,5 +1,6 @@
 package com.example.routes
 
+import com.example.data.model.AcceptRejectInvite
 import com.example.data.model.AddEventReq
 import com.example.data.model.Event
 import com.example.data.model.EventDetails
@@ -104,7 +105,13 @@ fun Route.inviteRoutes() {
 
     // Route to accept an invite
     post("/acceptInvite") {
-        val req = call.receive<InviteResponse>()
+
+
+        val req = call.receive<AcceptRejectInvite>()
+
+        println("Accepting INVITE - --  -- -- - - - - -----")
+        println(req)
+
         transaction {
             Invites.update({ Invites.invite_id eq req.invite_id }) {
                 it[status] = "accepted"
