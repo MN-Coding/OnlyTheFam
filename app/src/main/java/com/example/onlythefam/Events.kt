@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -65,7 +66,12 @@ data class EventUiModel(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EventsPage(navController: NavController) {
+
+    // log the user id
+    Log.d("EventsPage", "GlobalVariables.userId: ${GlobalVariables.userId}")
+
     val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
+    val username = remember { GlobalVariables.username }
     val eventsUiModel = remember { mutableStateListOf<EventUiModel>() }
 
     LaunchedEffect(uid) {
@@ -76,9 +82,12 @@ fun EventsPage(navController: NavController) {
     }
 
     Scaffold {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            eventsUiModel.forEach { eventUiModel ->
-                EventCard(eventUiModel = eventUiModel, navController = navController)
+        Column {
+            Text(text = "${username}'s Events", style = MaterialTheme.typography.h4, modifier = Modifier.padding(16.dp))
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                eventsUiModel.forEach { eventUiModel ->
+                    EventCard(eventUiModel = eventUiModel, navController = navController)
+                }
             }
         }
     }
