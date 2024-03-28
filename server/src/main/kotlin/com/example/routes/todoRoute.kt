@@ -64,7 +64,7 @@ fun Route.todoRoutes() {
                 .map { it[Users.userID] }
         }
         if (event_id_res.isNotEmpty() && user_id_res.isNotEmpty()) {
-            val todoUUID = java.util.UUID.randomUUID().toString()
+            val todoUUID = "todo"+java.util.UUID.randomUUID().toString()
             println("req ------------------" + req)
             println("creator id trimmed ------------------" + req.creator_id.trim('"'))
             println("creator id ------------------" + req.creator_id)

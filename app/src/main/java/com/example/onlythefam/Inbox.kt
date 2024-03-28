@@ -109,6 +109,8 @@ suspend fun acceptInvite(
     receiver_user_id: String
 ): Boolean {
 
+    println(todo_id)
+
     val acceptInviteEndpoint = "http://${GlobalVariables.localIP}:5050/acceptInvite"
 
     val client = HttpClient(CIO) {
@@ -140,6 +142,45 @@ suspend fun acceptInvite(
     }
 }
 
+suspend fun rejectInvite(
+    invite_id: String,
+    event_id: String?,
+    todo_id: String?,
+    receiver_user_id: String
+): Boolean {
+
+    println(todo_id)
+
+    val rejectInviteEndpoint = "http://${GlobalVariables.localIP}:5050/declineInvite"
+
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    try {
+        val response: HttpResponse = client.post(rejectInviteEndpoint) {
+            contentType(ContentType.Application.Json)
+            setBody(AcceptRejectInvite(invite_id, event_id, todo_id, receiver_user_id))
+        }
+
+
+        // Close the client after the request
+        client.close()
+        val isSuccess = response.status.value in 200..299
+        if (isSuccess) {
+            Log.d("Decline Invite", "Decline Invite successful")
+        } else {
+            Log.d("Decline Invite", "Decline Invite failed with status: ${response.status}")
+        }
+        return isSuccess
+    } catch (e: Exception) {
+        Log.e("Decline Invite", "Decline during Accept Invite", e)
+        return false
+    }
+}
+
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -147,34 +188,31 @@ fun Inbox(navController: NavController) {
 
     val coroutineScope = rememberCoroutineScope()
 
-    var invitations by remember { mutableStateOf(listOf<InviteResponse>()) }
+    val invitations = remember { mutableStateOf(listOf<InviteResponse>()) }
 
     LaunchedEffect(key1 = Unit) {
         coroutineScope.launch {
             try {
-                invitations = getAllInvites()
+                invitations.value = getAllInvites()
             } catch (e: Exception) {
                 Log.e("GetPendingInvitations", "Exception during fetching all invitations", e)
             }
         }
     }
 
-
-
     LazyColumn(
         modifier = Modifier
             .padding(30.dp, 45.dp)
             .fillMaxSize()
     ) {
-        items(invitations) { invitation ->
-            InvitationCard(invitation, coroutineScope = coroutineScope)
+        items(invitations.value) { invitation ->
+            InvitationCard(invitation, coroutineScope = coroutineScope, invitations = invitations)
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
-
 @Composable
-fun InvitationCard(invitation: InviteResponse, coroutineScope: CoroutineScope) {
+fun InvitationCard(invitation: InviteResponse, coroutineScope: CoroutineScope, invitations: MutableState<List<InviteResponse>>) {
     var isExpanded by remember { mutableStateOf(false) }
 
     var isEvent = invitation.event != null
@@ -225,16 +263,20 @@ fun InvitationCard(invitation: InviteResponse, coroutineScope: CoroutineScope) {
                 ) {
                     IconButton(
                         onClick = { coroutineScope.launch { GlobalVariables.userId?.trim('"')?.let {
-                            acceptInvite(invitation.invite_id, invitation.event_id, invitation.invite_id,
-                                it
-                            )
+                            if (acceptInvite(invitation.invite_id, invitation.event_id, invitation.todo_id, it)) {
+                                invitations.value = getAllInvites()
+                            }
                         } } },
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(Icons.Default.Check, contentDescription = "Accept", tint = Color.Green)
                     }
                     IconButton(
-                        onClick = { /* Handle Reject */ },
+                        onClick = { coroutineScope.launch { GlobalVariables.userId?.trim('"')?.let {
+                            if (rejectInvite(invitation.invite_id, invitation.event_id, invitation.todo_id, it)) {
+                                invitations.value = getAllInvites()
+                            }
+                        } } },
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(Icons.Default.Close, contentDescription = "Reject", tint = Color.Red)
