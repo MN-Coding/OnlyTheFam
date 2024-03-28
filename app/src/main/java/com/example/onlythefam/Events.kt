@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -60,6 +61,7 @@ data class EventUiModel(
     var expanded by mutableStateOf(false)
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EventsPage(navController: NavController) {
