@@ -19,6 +19,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.selectAll
 import com.example.data.schema.Users
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 
 fun Route.todoRoutes() {
@@ -104,6 +106,19 @@ fun Route.todoRoutes() {
                 }
             }
             call.respondText(Json.encodeToString(result), ContentType.Application.Json, status = HttpStatusCode.OK)
+        } else {
+            call.respondText("Invalid request", status = HttpStatusCode.BadRequest)
+        }
+    }
+
+    // make route to delete todo by todo_id
+    delete("/deleteTodo") {
+        val todo_id = call.parameters["todo_id"]
+        if (todo_id != null) {
+            transaction {
+                Todos.deleteWhere { Todos.todo_id eq todo_id }
+            }
+            call.respondText("Todo deleted", status = HttpStatusCode.OK)
         } else {
             call.respondText("Invalid request", status = HttpStatusCode.BadRequest)
         }
