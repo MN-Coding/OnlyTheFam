@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import FamilyPage
 import TodoEventScreen
 import android.annotation.SuppressLint
 import android.os.Build
@@ -39,9 +40,10 @@ fun Events(navController: NavController) {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Family() {
-    Text("Family")
+fun Family(navController: NavController) {
+    FamilyPage(navController = navController)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -78,7 +80,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
             Events(navController = navController)
         }
         composable(BottomNavItem.Family.screen_route) {
-            Family()
+            Family(navController = navController)
         }
         composable("profileSettings"){
             SettingsPage(onGoBack = {navController.popBackStack()},
