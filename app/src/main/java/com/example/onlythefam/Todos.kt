@@ -80,6 +80,7 @@ data class TodosUiModel(
 @Composable
 fun TodosPage(navController: NavController) {
     val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
+    val username = remember { GlobalVariables.username }
     val todosUIModel = remember { mutableStateOf(listOf<TodosUiModel>()) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -98,16 +99,19 @@ fun TodosPage(navController: NavController) {
     }
 
     Scaffold {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            if (todosUIModel.value.isEmpty()) {
-                Text(
-                    text = "No current todos",
-                    style = MaterialTheme.typography.body1,
-                    modifier = Modifier.padding(16.dp)
-                )
-            } else {
-                todosUIModel.value.forEach { todo ->
-                    TodoCard(todoUiModel = todo, navController = navController, onDone = { coroutineScope.launch { fetchTodos() } })
+        Column {
+            Text(text = "${username}'s Todos", style = MaterialTheme.typography.h4, modifier = Modifier.padding(16.dp))
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                if (todosUIModel.value.isEmpty()) {
+                    Text(
+                        text = "No current todos",
+                        style = MaterialTheme.typography.body1,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else {
+                    todosUIModel.value.forEach { todo ->
+                        TodoCard(todoUiModel = todo, navController = navController, onDone = { coroutineScope.launch { fetchTodos() } })
+                    }
                 }
             }
         }

@@ -764,7 +764,12 @@ private fun signUp(
             }
             if (response.status == HttpStatusCode.OK) {
                 load.value = false
-                GlobalVariables.userId = response.bodyAsText()
+                val responseBody = Json.decodeFromString<LoginResponse>(response.bodyAsText())
+                GlobalVariables.userId = responseBody.userID
+                GlobalVariables.username = responseBody.name
+                // log each global variable
+                Log.d(TAG, "signUp: ${GlobalVariables.userId}")
+                Log.d(TAG, "signUp: ${GlobalVariables.username}")
                 redirectOnSignup()
             } else {
                 scaffoldState.snackbarHostState.showSnackbar(response.bodyAsText())

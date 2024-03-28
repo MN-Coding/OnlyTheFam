@@ -300,12 +300,6 @@ fun AddEvent(navController: NavController) {
 
             EditableTextField(fieldName = "Description", fieldVal = description, onChange = { updated -> description = updated })
 
-            Text("Tasks:", fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(5.dp))
-
-            Text("Cost Split:", fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(5.dp))
-
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Button(onClick = { navController.navigate("todo_event_screen") }) {
                     Text("Cancel")

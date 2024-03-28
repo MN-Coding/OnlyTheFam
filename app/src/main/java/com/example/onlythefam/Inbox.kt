@@ -187,7 +187,7 @@ suspend fun rejectInvite(
 fun Inbox(navController: NavController) {
 
     val coroutineScope = rememberCoroutineScope()
-
+    val username = remember { GlobalVariables.username }
     val invitations = remember { mutableStateOf(listOf<InviteResponse>()) }
 
     LaunchedEffect(key1 = Unit) {
@@ -200,14 +200,25 @@ fun Inbox(navController: NavController) {
         }
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .padding(30.dp, 45.dp)
-            .fillMaxSize()
-    ) {
-        items(invitations.value) { invitation ->
-            InvitationCard(invitation, coroutineScope = coroutineScope, invitations = invitations)
-            Spacer(modifier = Modifier.height(16.dp))
+    Column {
+        Text(text = "${username}'s Inbox", style = MaterialTheme.typography.h4, modifier = Modifier.padding(16.dp))
+        if (invitations.value.isEmpty()) {
+            Text(
+                text = "No invites",
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.padding(16.dp)
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(30.dp, 45.dp)
+                    .fillMaxSize()
+            ) {
+                items(invitations.value) { invitation ->
+                    InvitationCard(invitation, coroutineScope = coroutineScope, invitations = invitations)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
         }
     }
 }
