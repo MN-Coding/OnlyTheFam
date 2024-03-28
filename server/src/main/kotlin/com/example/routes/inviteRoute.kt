@@ -41,7 +41,7 @@ fun Route.inviteRoutes() {
                 it[sender_user_id] = req.sender_user_id
                 it[receiver_user_id] = req.receiver_user_id
                 it[status] = req.status
-                it[invite_id] = java.util.UUID.randomUUID().toString()
+                it[invite_id] = "invite"+java.util.UUID.randomUUID().toString()
             }
         }
         call.respond(HttpStatusCode.OK, "Invite created")
@@ -128,8 +128,13 @@ fun Route.inviteRoutes() {
             }
         }
 
+
         // now add the user to the todo if todo_id is not null
         if (req.todo_id != null) {
+
+            println("putting todo_id in todo")
+            println(req)
+
             transaction {
                 Todos.update({ Todos.todo_id eq req.todo_id }) {
                     it[assigned_user_id] = req.receiver_user_id
@@ -142,7 +147,7 @@ fun Route.inviteRoutes() {
 
     // Route to decline an invite
     post("/declineInvite") {
-        val req = call.receive<InviteResponse>()
+        val req = call.receive<AcceptRejectInvite>()
         transaction {
             Invites.update({ Invites.invite_id eq req.invite_id }) {
                 it[status] = "declined"
