@@ -1,9 +1,8 @@
 package com.example.routes
 
-import com.example.data.model.User
 import com.example.data.model.UserAllergies
 import com.example.data.model.UserBloodType
-import com.example.data.model.UserLogin
+import com.example.data.model.UserPersonal
 import com.example.data.model.Username
 import com.example.data.schema.Allergies
 import com.example.data.schema.Users
@@ -17,25 +16,22 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
-import io.ktor.util.Identity.encode
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
-import kotlin.reflect.jvm.internal.impl.resolve.scopes.MemberScope.Empty
-import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
-import org.jetbrains.exposed.sql.selectAll
+import java.time.LocalDate
 
 @Serializable
 data class UserInfo(
     val name: String,
     val email: String,
     val bloodType: String,
+    val dob: String? = null,
     val familyID: String
 )
 
@@ -58,6 +54,45 @@ fun Route.userRoutes() {
         else{
             call.respond(HttpStatusCode.NotFound, "User not found")
         }
+    }
+
+    put("/updateName"){
+        val userInfo = call.receive<UserPersonal>()
+        val id = userInfo.userID
+        val newName = userInfo.name
+
+        val updatedEntries = transaction {
+            Users.update({ Users.userID eq id }){
+                it[name] = newName
+            }
+        }
+
+        if (updatedEntries > 0){
+            call.respond(HttpStatusCode.OK, "name updated successfully")
+        }
+        else{
+            call.respond(HttpStatusCode.NotFound, "User not found")
+        }
+    }
+
+    put("/updateDob"){
+        val userInfo = call.receive<UserPersonal>()
+        val id = userInfo.userID
+        val newDob = LocalDate.parse(userInfo.dobstr)
+
+        val updatedEntries = transaction {
+            Users.update({ Users.userID eq id }){
+                it[dob] = newDob
+            }
+        }
+
+        if (updatedEntries > 0){
+            call.respond(HttpStatusCode.OK, "birthdate updated successfully")
+        }
+        else{
+            call.respond(HttpStatusCode.NotFound, "User not found")
+        }
+
     }
 
     post("/addAllergies"){
@@ -93,6 +128,23 @@ fun Route.userRoutes() {
 
     }
 
+    get("/getHealthInfo"){
+        val id = call.parameters["userID"]
+
+        if (id != null){
+            val healthInfo = transaction{
+                Users.select { (Users.userID eq id) }
+                    .map { it[Users.otherHealth] }
+            }
+
+            call.respondText(Json.encodeToString(healthInfo), ContentType.Application.Json, status = HttpStatusCode.Accepted)
+        }
+        else{
+            call.respondText("User not found", status = HttpStatusCode.BadRequest)
+        }
+
+    }
+
     get("/getUserInfo"){
         val id = call.parameters["userID"]
         if (id != null){
@@ -103,6 +155,7 @@ fun Route.userRoutes() {
                             name = row[Users.name],
                             email = row[Users.email],
                             bloodType = row[Users.bloodType],
+                            dob = row[Users.dob].toString(),
                             familyID = row[Users.familyId]
                         )
                     }.singleOrNull()
@@ -130,6 +183,7 @@ fun Route.userRoutes() {
                             name = row[Users.name],
                             email = row[Users.email],
                             bloodType = row[Users.bloodType],
+                            dob = row[Users.dob].toString(),
                             familyID = row[Users.familyId]
                         )
                     }.singleOrNull()

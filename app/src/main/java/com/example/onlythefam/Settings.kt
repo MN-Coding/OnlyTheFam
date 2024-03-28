@@ -1,7 +1,10 @@
 package com.example.onlythefam
 
 import android.annotation.SuppressLint
+import android.app.DatePickerDialog
+import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +31,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,8 +66,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.toLocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.time.LocalDate
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterialApi::class)
@@ -70,6 +77,7 @@ import kotlinx.serialization.json.Json
 @Composable
 fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -105,23 +113,27 @@ fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
         var loading by remember { mutableStateOf(true) }
         var name by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("") }
-        var dob by remember { mutableStateOf("January 1st, 1999") }
+        var dob by remember { mutableStateOf("") }
         var bloodType by remember { mutableStateOf("") }
         val bloodTypeOptions = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
         var allergies by remember { mutableStateOf("") }
         val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
+        var otherHealth by remember { mutableStateOf("") }
         LaunchedEffect(uid){
             if (uid.isNotEmpty()){
                 coroutineScope.launch{
                     val userInfoDelegate = async{ getUserInfo(uid) }
                     val allergiesDelegate = async{ getAllergies(uid) }
+                    val healthDelegate = async{ getHealthFacts(uid) }
 
                     val userInfo = userInfoDelegate.await()
                     allergies = allergiesDelegate.await()
+                    otherHealth = healthDelegate.await()
 
                     name = userInfo?.name ?: ""
                     email = userInfo?.email ?: ""
                     bloodType = userInfo?.bloodType ?: ""
+                    dob = userInfo?.dob ?: ""
 
                     loading = false
                 }
@@ -137,11 +149,18 @@ fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
                 EditableTextField(
                     fieldName = "Name",
                     fieldVal = name,
-                    onChange = { updatedName -> name = updatedName })
-                EditableTextField(
+                    onChange = {
+                        updatedName -> name = updatedName
+                        updateName(uid, updatedName, coroutineScope)
+                    })
+                DateField(
+                    uid = uid,
                     fieldName = "Date of Birth",
-                    fieldVal = dob,
-                    onChange = { updatedDob -> dob = updatedDob })
+                    dateVal = dob,
+                    onChange = {updatedDob -> dob = updatedDob},
+                    coroutineScope = coroutineScope,
+                    context = context
+                )
                 StaticUserProfileField(fieldName = "Email", fieldVal = email)
                 Spacer(modifier = Modifier.height(5.dp))
                 Text("Health", fontSize = 21.sp)
@@ -166,6 +185,7 @@ fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
                         addAllergies(uid, newAllergies, coroutineScope) //post new allergies in backend
                     }
                 )
+                StaticUserProfileField(fieldName = "Other Health Info", fieldVal = otherHealth)
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = onLogout,
@@ -273,11 +293,59 @@ fun ProfileDropdownMenu(menuName: String, menuOptions: List<String>, placeholder
     Spacer(modifier = Modifier.height(10.dp))
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun DateField(uid: String, fieldName: String, dateVal: String, onChange: (String) -> Unit, coroutineScope: CoroutineScope, context: Context){
+
+    fun updateDate(year: Int, month: Int, day: Int) {
+        val newDateVal = LocalDate.of(year, month + 1, day).toString()
+        onChange(newDateVal)
+        updateDob(uid, newDateVal, coroutineScope)
+    }
+
+    // Show day + time picker
+    fun showDatePicker() {
+        val y = dateVal.toLocalDate().year
+        val m = dateVal.toLocalDate().monthNumber - 1
+        val d = dateVal.toLocalDate().dayOfMonth
+        DatePickerDialog(context, R.style.DialogTheme, { _, year, monthOfYear, dayOfMonth ->
+            updateDate(year, monthOfYear, dayOfMonth)
+        }, y, m, d).show()
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .wrapContentWidth(Alignment.Start)
+        ) {
+            Text(fieldName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            OutlinedTextField(
+                value = dateVal,
+                onValueChange = {},
+                maxLines = 1,
+                readOnly = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
+            )
+        }
+        IconButton(onClick = { showDatePicker() }) {
+            Icon(Icons.Filled.DateRange, contentDescription = "Birthday")
+        }
+    }
+    Spacer(modifier = Modifier.height(18.dp))
+}
+
 @Serializable
 data class UserInfo(
     val name: String,
     val email: String,
     val bloodType: String,
+    val dob: String,
     val familyID: String
 )
 
@@ -331,6 +399,78 @@ private suspend fun getAllergies(userId: String) : String {
         ""
     } finally {
         client.close()
+    }
+}
+
+private suspend fun getHealthFacts(userId: String) : String {
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    return try {
+        val userEndpoint = "http://${GlobalVariables.localIP}:5050/getHealthInfo?userID=$userId"
+        val response: HttpResponse = withContext(Dispatchers.IO) {
+            client.get(userEndpoint) {
+                contentType(ContentType.Application.Json)
+            }
+        }
+        val jsonArrayString = response.bodyAsText()
+        val allergiesList: List<String> = Json.decodeFromString(jsonArrayString)
+        allergiesList.joinToString(separator = ", ")
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ""
+    } finally {
+        client.close()
+    }
+}
+
+@Serializable
+data class UserPersonal(val userID: String, val name: String, val dobstr: String)
+
+private fun updateName(userId: String, name: String, coroutineScope: CoroutineScope) {
+    coroutineScope.launch {
+        val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateName"
+        val client = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+        try {
+            client.put(userEndpoint) {
+                contentType(ContentType.Application.Json)
+                setBody(UserPersonal(userId, name, ""))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            client.close()
+        }
+    }
+}
+
+private fun updateDob(userId: String, dob: String, coroutineScope: CoroutineScope){
+    Log.d("Server Call", "Update Dob")
+    coroutineScope.launch {
+        val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateDob"
+        val client = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+        try {
+            client.put(userEndpoint) {
+                contentType(ContentType.Application.Json)
+                setBody(UserPersonal(userId, "", dob))
+            }
+            Log.d("Server Call", "Put @ updateDob")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            client.close()
+        }
     }
 }
 
