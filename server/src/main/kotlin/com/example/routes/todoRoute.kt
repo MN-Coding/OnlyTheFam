@@ -111,14 +111,17 @@ fun Route.todoRoutes() {
         }
     }
 
-    // make route to delete todo by todo_id
     delete("/deleteTodo") {
         val todo_id = call.parameters["todo_id"]
         if (todo_id != null) {
             transaction {
+                // First delete the invite with the todo_id
+                Invites.deleteWhere { Invites.todo_id eq todo_id }
+
+                // Then delete the todo
                 Todos.deleteWhere { Todos.todo_id eq todo_id }
             }
-            call.respondText("Todo deleted", status = HttpStatusCode.OK)
+            call.respondText("Todo and related invite deleted", status = HttpStatusCode.OK)
         } else {
             call.respondText("Invalid request", status = HttpStatusCode.BadRequest)
         }
