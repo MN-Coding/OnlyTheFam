@@ -2,23 +2,28 @@ package com.example.routes
 
 import com.example.data.model.AddEventReq
 import com.example.data.model.Event
+import com.example.data.schema.Allergies
 import com.example.data.schema.Event_Participants
 import com.example.data.schema.Events
 import com.example.data.schema.Invites
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import com.example.data.schema.Users
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.selectAll
-import com.example.data.schema.Users
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.eventRoutes() {
 
@@ -235,5 +240,27 @@ fun Route.eventRoutes() {
             }
         }
         call.respondText("Event created", status = HttpStatusCode.Created)
+    }
+
+    get("/getParticipantAllergies"){
+        val id = call.parameters["eventID"]
+
+        val allAllergies = transaction {
+            val users = Event_Participants.select { (Event_Participants.event_id eq id!!) }
+                .map { it[Event_Participants.user_id]}
+
+            if (users.isEmpty()){
+                return@transaction emptyList<String>()
+            }
+            else{
+                Allergies.select {Allergies.userID inList users}
+                    .map {it[Allergies.allergy]}
+                    .distinct()
+            }
+        }
+
+        call.respondText(Json.encodeToString(allAllergies), ContentType.Application.Json, status = HttpStatusCode.Accepted)
+        //call.respond(HttpStatusCode.OK, allAllergies)
+
     }
 }

@@ -1,18 +1,33 @@
 package com.example.onlythefam
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -26,22 +41,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import android.util.Log
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.navigation.NavController
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.rememberAsyncImagePainter
 import java.net.URLEncoder
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.ui.Alignment
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -49,9 +49,11 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun EventDetails(navController: NavController, eventId: String) {
     val event = remember { mutableStateOf<EventResponse?>(null) }
+    val allergies = remember { mutableStateOf<List<String>>(listOf()) }
 
     LaunchedEffect(eventId) {
         event.value = getEventById(eventId)
+        allergies.value = getParticipantAllergies(eventId)
     }
 
     Scaffold(
@@ -100,7 +102,6 @@ fun EventDetails(navController: NavController, eventId: String) {
                         style = MaterialTheme.typography.body1
                     )
                 }
-
                 Row(
                     modifier = Modifier.padding(top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -112,6 +113,11 @@ fun EventDetails(navController: NavController, eventId: String) {
                 Text(
                     modifier = Modifier.padding(top = 8.dp),
                     text = "Participants: ${eventDetails.participants.joinToString(", ")}",
+                    style = MaterialTheme.typography.body1
+                )
+                Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = "Allergies: ${allergies.value.joinToString(", ")}",
                     style = MaterialTheme.typography.body1
                 )
                 val address = eventDetails.location
@@ -160,6 +166,39 @@ private suspend fun getEventById(eventId: String): EventResponse? {
     } catch (e: Exception) {
         Log.e("EventDetails", "Error fetching the event", e)
         return null
+    } finally {
+        client.close()
+    }
+}
+
+private suspend fun getParticipantAllergies(eventId: String): List<String> {
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    Log.d("EventDetails", "getParticipantAllergies called with eventID: $eventId")
+
+    return try {
+        val userEndpoint = "http://${GlobalVariables.localIP}:5050/getParticipantAllergies?eventID=$eventId"
+        val response: HttpResponse = withContext(Dispatchers.IO) {
+            client.get(userEndpoint) {
+                contentType(ContentType.Application.Json)
+            }
+        }
+        if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.Accepted) {
+            Log.d("EventDetails", "Successfully retrieved participant allergies")
+            val jsonArrayString = response.bodyAsText()
+            Json.decodeFromString<List<String>>(jsonArrayString)
+        }
+        else{
+            Log.d("EventDetails", "Failed to retrieve participant allergies: ${response.bodyAsText()} ${response.status}")
+            listOf()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        listOf()
     } finally {
         client.close()
     }
