@@ -1,237 +1,224 @@
 package com.example.onlythefam
 
-// Modified using source code from:
-// Author: Matthias Kerat
-// Title: CalendarYT
-// Repository: https://github.com/MatthiasKerat/CalendarYT/blob/main/app/src/main/java/com/kapps/calendaryt/MainActivity.kt
-// Commit: 7b97175
-
-import android.graphics.Paint
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Text
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.onlythefam.ui.theme.Blue200
-import kotlinx.coroutines.launch
+import com.example.onlythefam.ui.theme.Blue500
+import com.example.onlythefam.ui.theme.OnlyTheFamTheme
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.Month
-import java.time.YearMonth
+import java.time.temporal.ChronoUnit
+import java.util.stream.Collectors
+import java.util.stream.Stream
+
+/**
+ * Created by meyta.taliti on 20/05/23.
+ */
 
 @RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun Cal() {
-    val today = LocalDate.now()
-    val year = today.year
-    val month = today.month.ordinal + 1
-    val calendarInputList by remember {
-        mutableStateOf(createCalendarList(year, month))
-    }
-    var clickedCalendarElem by remember {
-        mutableStateOf<CalendarInput?>(null)
-    }
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Calendar(
-            calendarInput = calendarInputList,
-            onDayClick = { day ->
-                clickedCalendarElem = calendarInputList.first { it.day == day }
-            },
-            month = month,
-            year = year,
-            modifier = Modifier
-//                .padding(0.dp, 10.dp)
-                .fillMaxWidth()
-                .aspectRatio(1.4f)
-                .border(
-                    border = BorderStroke(1.dp, Color.LightGray),
-                    shape = RoundedCornerShape(16.dp) // Adjust the shape as needed
-                )
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
-//                .align(Alignment.Center)
-        ) {
-            clickedCalendarElem?.toDos?.forEach {
-                Text(
-                    if (it.contains("Day")) it else "- $it",
-                    color = Blue200,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = if (it.contains("Day")) 12.sp else 18.sp
-                )
-            }
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-fun createCalendarList(year: Int, month: Int): List<CalendarInput> {
-    val yearMonth = YearMonth.of(year, month)
-    val daysInMonth = yearMonth.lengthOfMonth()
-    val calendarInputs = mutableListOf<CalendarInput>()
-    for (i in 1..daysInMonth) {
-        calendarInputs.add(
-            CalendarInput(
-                i, toDos = listOf(
-                    "Day $i:", "2 p.m. Buying groceries", "4 p.m. Meeting with Larissa"
-                )
-            )
-        )
-    }
-    return calendarInputs
-}
-
-
-private const val CALENDAR_ROWS = 6
-private const val CALENDAR_COLUMNS = 7
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun Calendar(
-    modifier: Modifier = Modifier,
-    calendarInput: List<CalendarInput>,
-    onDayClick: (Int) -> Unit,
-    strokeWidth: Float = 2f,
-    year: Int,
-    month: Int
+data class CalendarUiModel(
+    val selectedDate: Date,
+    val visibleDates: List<Date>
 ) {
 
-    var canvasSize by remember {
-        mutableStateOf(Size.Zero)
-    }
-    var clickAnimationOffset by remember {
-        mutableStateOf(Offset.Zero)
-    }
+    val startDate: Date = visibleDates.first()
+    val endDate: Date = visibleDates.last()
 
-    var animationRadius by remember {
-        mutableStateOf(0f)
-    }
-
-    val scope = rememberCoroutineScope()
-    val yearMonth = YearMonth.of(year, month)
-    val startingDayOfMonth = yearMonth.atDay(1).dayOfWeek.ordinal + 1
-
-    Column(
-        modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)
+    data class Date(
+        val date: LocalDate,
+        val isSelected: Boolean,
+        val isToday: Boolean
     ) {
-        Text(
-            text = Month.of(month).toString(),
-            color = Blue200,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(10.dp, 5.dp)
-        )
-        Divider(
-            modifier = Modifier.padding(horizontal = 15.dp), color = Color.LightGray
-        )
-        Canvas(modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp)
-            .pointerInput(true) {
-                detectTapGestures(onTap = { offset ->
-                    val column = (offset.x / canvasSize.width * CALENDAR_COLUMNS).toInt() + 1
-                    val row = (offset.y / canvasSize.height * CALENDAR_ROWS).toInt() + 1
-                    val day = column + (row - 1) * CALENDAR_COLUMNS - startingDayOfMonth
-                    if (day > 0 && day <= calendarInput.size) {
-                        onDayClick(day)
-                        clickAnimationOffset = offset
-                        scope.launch {
-                            animate(0f, 225f, animationSpec = tween(300)) { value, _ ->
-                                animationRadius = value
-                            }
-                        }
-                    }
-
-                })
-            }) {
-            val canvasHeight = size.height
-            val canvasWidth = size.width
-            canvasSize = Size(canvasWidth, canvasHeight)
-            val ySteps = canvasHeight / CALENDAR_ROWS
-            val xSteps = canvasWidth / CALENDAR_COLUMNS
-
-            val column = (clickAnimationOffset.x / canvasSize.width * CALENDAR_COLUMNS).toInt() + 1
-            val row = (clickAnimationOffset.y / canvasSize.height * CALENDAR_ROWS).toInt() + 1
-
-            val path = Path().apply {
-                moveTo((column - 1) * xSteps, (row - 1) * ySteps)
-                lineTo(column * xSteps, (row - 1) * ySteps)
-                lineTo(column * xSteps, row * ySteps)
-                lineTo((column - 1) * xSteps, row * ySteps)
-                close()
-            }
-
-            clipPath(path) {
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        listOf(Blue200.copy(0.8f), Blue200.copy(0.2f)),
-                        center = clickAnimationOffset,
-                        radius = animationRadius + 0.1f
-                    ), radius = animationRadius + 0.1f, center = clickAnimationOffset
-                )
-            }
-
-            drawRoundRect(
-                Color(0x00FFFFFF), cornerRadius = CornerRadius(25f, 25f), style = Stroke(
-                    width = strokeWidth
-                )
-            )
-
-            for (i in 1 until CALENDAR_ROWS) {
-                drawLine(
-                    color = Color.LightGray,
-                    start = Offset(0f, ySteps * i),
-                    end = Offset(canvasWidth, ySteps * i),
-                    strokeWidth = strokeWidth
-                )
-            }
-            for (i in 1 until CALENDAR_COLUMNS) {
-                drawLine(
-                    color = Color.LightGray,
-                    start = Offset(xSteps * i, 0f),
-                    end = Offset(xSteps * i, canvasHeight),
-                    strokeWidth = strokeWidth
-                )
-            }
-            val textHeight = 17.dp.toPx()
-            for (i in calendarInput.indices) {
-                val textPositionX = xSteps * ((i + startingDayOfMonth) % CALENDAR_COLUMNS) + strokeWidth
-                val textPositionY =
-                    ((i + startingDayOfMonth) / CALENDAR_COLUMNS) * ySteps + textHeight + strokeWidth / 2
-                drawContext.canvas.nativeCanvas.apply {
-                    drawText("${i + 1}", textPositionX, textPositionY, Paint().apply {
-                        textSize = textHeight
-                        color = Blue200.toArgb()
-                        isFakeBoldText = true
-                    })
-                }
-            }
-        }
+        val day: String = date.format(DateTimeFormatter.ofPattern("E"))
     }
-
 }
 
-data class CalendarInput(
-    val day: Int, val toDos: List<String> = emptyList()
-)
+@RequiresApi(Build.VERSION_CODES.O)
+class CalendarDataSource {
+
+    val today: LocalDate
+        get() {
+            return LocalDate.now()
+        }
+
+    fun getData(startDate: LocalDate = today, lastSelectedDate: LocalDate): CalendarUiModel {
+        val firstDayOfWeek = startDate.with(DayOfWeek.MONDAY)
+        val endDayOfWeek = firstDayOfWeek.plusDays(7)
+        val visibleDates = getDatesBetween(firstDayOfWeek, endDayOfWeek)
+        return toUiModel(visibleDates, lastSelectedDate)
+    }
+
+    private fun getDatesBetween(startDate: LocalDate, endDate: LocalDate): List<LocalDate> {
+        val numOfDays = ChronoUnit.DAYS.between(startDate, endDate)
+        return Stream.iterate(startDate) { date ->
+            date.plusDays(/* daysToAdd = */ 1)
+        }
+            .limit(numOfDays)
+            .collect(Collectors.toList())
+    }
+
+
+    private fun toUiModel(
+        dateList: List<LocalDate>,
+        lastSelectedDate: LocalDate
+    ): CalendarUiModel {
+        return CalendarUiModel(
+            selectedDate = toItemUiModel(lastSelectedDate, true),
+            visibleDates = dateList.map {
+                toItemUiModel(it, it.isEqual(lastSelectedDate))
+            },
+        )
+    }
+
+    private fun toItemUiModel(date: LocalDate, isSelectedDate: Boolean) = CalendarUiModel.Date(
+        isSelected = isSelectedDate,
+        isToday = date.isEqual(today),
+        date = date,
+    )
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun CalendarApp(
+    modifier: Modifier = Modifier,
+) {
+    val dataSource = CalendarDataSource()
+    var data by remember { mutableStateOf(dataSource.getData(lastSelectedDate = dataSource.today)) }
+    Column(modifier = modifier.fillMaxSize()) {
+        Header(
+            data = data,
+            onPrevClickListener = { startDate ->
+                val finalStartDate = startDate.minusDays(1)
+                data = dataSource.getData(startDate = finalStartDate, lastSelectedDate = data.selectedDate.date)
+            },
+            onNextClickListener = { endDate ->
+                val finalStartDate = endDate.plusDays(2)
+                data = dataSource.getData(startDate = finalStartDate, lastSelectedDate = data.selectedDate.date)
+            }
+        )
+        Content(data = data) { date ->
+            data = data.copy(
+                selectedDate = date,
+                visibleDates = data.visibleDates.map {
+                    it.copy(
+                        isSelected = it.date.isEqual(date.date)
+                    )
+                }
+            )
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun Header(
+    data: CalendarUiModel,
+    onPrevClickListener: (LocalDate) -> Unit,
+    onNextClickListener: (LocalDate) -> Unit,
+) {
+    Row {
+        Text(
+            text = if (data.selectedDate.isToday) {
+                "Today"
+            } else {
+                data.selectedDate.date.format(
+                    DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)
+                )
+            },
+            modifier = Modifier
+                .weight(1f)
+                .align(Alignment.CenterVertically)
+        )
+        IconButton(onClick = {
+            onPrevClickListener(data.startDate.date)
+        }) {
+            Icon(
+                imageVector = Icons.Filled.ChevronLeft,
+                contentDescription = "Back"
+            )
+        }
+        IconButton(onClick = {
+            onNextClickListener(data.endDate.date)
+        }) {
+            Icon(
+                imageVector = Icons.Filled.ChevronRight,
+                contentDescription = "Next"
+            )
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun Content(
+    data: CalendarUiModel,
+    onDateClickListener: (CalendarUiModel.Date) -> Unit,
+) {
+    LazyVerticalGrid(columns = GridCells.Adaptive(minSize = 48.dp)) {
+        items(data.visibleDates.size) { index ->
+            ContentItem(
+                date = data.visibleDates[index],
+                onDateClickListener
+            )
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ContentItem(
+    date: CalendarUiModel.Date,
+    onClickListener: (CalendarUiModel.Date) -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .padding(vertical = 4.dp, horizontal = 4.dp)
+            .clickable {
+                onClickListener(date)
+            }
+        ,
+        colors = CardDefaults.cardColors(
+            containerColor = if (date.isSelected) {
+                Blue200
+            } else {
+                Color(0xFFf0f0f0)
+            }
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .width(40.dp)
+                .height(48.dp)
+                .padding(4.dp)
+        ) {
+            Text(
+                text = date.day,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = date.date.dayOfMonth.toString(),
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}

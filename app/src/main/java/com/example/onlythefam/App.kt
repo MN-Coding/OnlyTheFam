@@ -1,5 +1,8 @@
 package com.example.onlythefam
 
+import FamilyPage
+import TodoEventScreen
+import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -27,10 +30,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.onlythefam.GlobalVariables.userId
 import java.sql.*
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Todos() {
-    Text("Todos")
-
+fun Todos(navController: NavController) {
+    TodosPage(navController = navController)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -40,15 +43,16 @@ fun Events(navController: NavController) {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Family() {
-    Text("Family")
+fun Family(navController: NavController) {
+    FamilyPage(navController = navController)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Add() {
-    AddEvent()
+fun Add(navController: NavController) {
+    TodoEventScreen(navController)
 }
 
 sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val title: String) {
@@ -56,7 +60,9 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
     object Todos : BottomNavItem("todos", Icons.Rounded.List, "Todos")
     object Add : BottomNavItem("add", Icons.Rounded.Add, "Add")
     object Events : BottomNavItem("events", Icons.Rounded.Event, "Events")
+    object Inbox : BottomNavItem("inbox", Icons.Rounded.Inbox, "Inbox")
     object Family : BottomNavItem("family", Icons.Rounded.Group, "Family")
+
 }
 
 
@@ -71,16 +77,16 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
             HomePage(navController)
         }
         composable(BottomNavItem.Todos.screen_route) {
-            Todos()
+            Todos(navController)
         }
         composable(BottomNavItem.Add.screen_route) {
-            Add()
+            Add(navController)
         }
         composable(BottomNavItem.Events.screen_route) {
             Events(navController = navController)
         }
         composable(BottomNavItem.Family.screen_route) {
-            Family()
+            Family(navController = navController)
         }
         composable("profileSettings"){
             SettingsPage(onGoBack = {navController.popBackStack()},
@@ -92,6 +98,11 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
                 EventDetails(navController = navController, eventId = eventId)
             }
         }
+
+        composable("add_todo") { AddTodo(navController) }
+        composable("add_event") { AddEvent(navController) }
+        composable("todo_event_screen") { TodoEventScreen(navController) }
+        composable("inbox") { Inbox(navController) }
     }
 }
 
@@ -102,9 +113,11 @@ fun BottomNavigation(navController: NavController) {
         BottomNavItem.Todos,
         BottomNavItem.Add,
         BottomNavItem.Events,
-        BottomNavItem.Family
+        BottomNavItem.Family,
+        BottomNavItem.Inbox
     )
-    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family")
+    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family", "todo_event_screen",
+        "add_event", "add_todo", "inbox")
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -146,9 +159,11 @@ fun BottomNavigation(navController: NavController) {
 
 object GlobalVariables {
     var userId: String? = null
+    var username: String? = null
     val localIP: String? = "10.0.2.2"
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {
@@ -197,44 +212,3 @@ fun App() {
         }
     }
 }
-
-//class DatabaseHelper(private val url: String, private val user: String, private val password: String) {
-//
-//    fun executeQuery(query: String, params: Array<Any>): ResultSet? {
-//        var resultSet: ResultSet? = null
-//        var connection: Connection? = null
-//
-//        try {
-//            connection = DriverManager.getConnection(url, user, password)
-//            val preparedStatement: PreparedStatement = connection.prepareStatement(query)
-//            for (i in params.indices) {
-//                preparedStatement.setObject(i + 1, params[i])
-//            }
-//            resultSet = preparedStatement.executeQuery()
-//        } catch (e: SQLException) {
-//            e.printStackTrace()
-//        }
-//        connection?.close()
-//        return resultSet
-//    }
-//
-//    fun executeUpdate(query: String, params: Array<Any>): Int {
-//        var connection: Connection? = null
-//        var ret: Int = -1
-//
-//        try {
-//            connection = DriverManager.getConnection(url, user, password)
-//            val preparedStatement: PreparedStatement = connection.prepareStatement(query)
-//            for (i in params.indices) {
-//                preparedStatement.setObject(i + 1, params[i])
-//            }
-//            ret = preparedStatement.executeUpdate()
-//        } catch (e: SQLException) {
-//            e.printStackTrace()
-//        }
-//        connection?.close()
-//        return ret
-//    }
-//
-//
-//}

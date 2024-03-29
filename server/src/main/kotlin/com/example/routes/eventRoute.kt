@@ -1,26 +1,36 @@
 package com.example.routes
 
+import com.example.data.model.AddEventReq
 import com.example.data.model.Event
+import com.example.data.schema.Allergies
+import com.example.data.schema.Event_Participants
 import com.example.data.schema.Events
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import com.example.data.schema.Invites
+import com.example.data.schema.Users
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.eventRoutes() {
 
     get("/getallevents") {
         val eventsList = transaction {
             Events.selectAll()
-                .map { Event(it[Events.event_id], it[Events.name], it[Events.description], it[Events.start_datetime].toString(), it[Events.end_datetime].toString(), it[Events.location]) }
+                .map { Event(it[Events.event_id], it[Events.name], it[Events.description], it[Events.start_datetime].toString(), it[Events.end_datetime].toString(), it[Events.location], it[Events.creator_id]) }
         }
 
         call.respondText(Json.encodeToString(eventsList), ContentType.Application.Json, status = HttpStatusCode.OK)
@@ -168,7 +178,7 @@ fun Route.eventRoutes() {
 
 
     post("/addevent") {
-        val eventData = call.receive<Event>()
+        val eventData = call.receive<AddEventReq>()
         transaction {
             Events.insert { event ->
                 event[event_id] = eventData.eventID
@@ -177,8 +187,80 @@ fun Route.eventRoutes() {
                 event[start_datetime] = eventData.startDatetime
                 event[end_datetime] = eventData.endDatetime
                 event[location] = eventData.location
+                event[creator_id] = eventData.creatorID.trim('"')
+            }
+
+            print("ADDING EVENT ---------------------")
+            print(eventData)
+
+            val participantsNames = eventData.participants
+
+            // obtain each participant's user_id and add them to the event if exists
+            for (participantName in participantsNames) {
+                val user_id = Users.select { Users.name eq participantName }
+                    .map { it[Users.userID] }
+                    .firstOrNull()
+
+                if (user_id == null) {
+                    continue
+                }
+
+                println("checking creator -------------- ${eventData.creatorID.trim('"')}" )
+                println("checking creator 2 -------------- ${eventData.creatorID}" )
+
+                Invites.insert{
+                    it[invite_id] = "invite"+java.util.UUID.randomUUID().toString()
+                    it[event_id] = eventData.eventID
+                    it[sender_user_id] = eventData.creatorID.trim('"')
+                    it[receiver_user_id] = user_id
+                    it[status] = "pending"
+                }
             }
         }
         call.respond(HttpStatusCode.Created)
+    }
+
+    // make route to create event for single userID
+    post("/createEvent") {
+        val req = call.receive<AddEventReq>()
+        val eventUUID = java.util.UUID.randomUUID().toString()
+        transaction {
+            Events.insert {
+                it[event_id] = eventUUID
+                it[name] = req.name
+                it[description] = req.description
+                it[start_datetime] = req.startDatetime
+                it[end_datetime] = req.endDatetime
+                it[location] = req.location
+                it[creator_id] = req.creatorID.trim('"')
+            }
+            Event_Participants.insert {
+                it[Event_Participants.event_id] = eventUUID
+                it[Event_Participants.user_id] = req.creatorID.trim('"')
+            }
+        }
+        call.respondText("Event created", status = HttpStatusCode.Created)
+    }
+
+    get("/getParticipantAllergies"){
+        val id = call.parameters["eventID"]
+
+        val allAllergies = transaction {
+            val users = Event_Participants.select { (Event_Participants.event_id eq id!!) }
+                .map { it[Event_Participants.user_id]}
+
+            if (users.isEmpty()){
+                return@transaction emptyList<String>()
+            }
+            else{
+                Allergies.select {Allergies.userID inList users}
+                    .map {it[Allergies.allergy]}
+                    .distinct()
+            }
+        }
+
+        call.respondText(Json.encodeToString(allAllergies), ContentType.Application.Json, status = HttpStatusCode.Accepted)
+        //call.respond(HttpStatusCode.OK, allAllergies)
+
     }
 }

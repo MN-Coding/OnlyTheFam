@@ -11,4 +11,8 @@
 | 2024/02/13 |   0.5   |   0.5   |        |      |       |    0.5  | D2|
 | 2024/03/01 |         |         |        |      |       |      5  | D3 - Todo list frontend|
 | 2024/03/02 |         |         |        |      |       |      3  | D3 - Updated Todo list frontend|
-| 2024/03/03 |         |         |        |      |       |    0.5  | D3 - Presentation|
+| 2024/03/03 |         |   0.5   |        |      |       |    0.5  | D3 - Presentation |
+| 2024/03/03 |    2    |         |        |      |       |         | D3 - Settings Page |
+| 2024/03/03 |         |    6    |        |      |       |         | D3 - Add Events and Events |
+| 2024/03/19 |         |         |        |      |       |    1.5  | D4 - Pipe & Filter |
+| 2024/03/19 |         |    1    |        |      |       |         | D4 - Microservices Architecture |

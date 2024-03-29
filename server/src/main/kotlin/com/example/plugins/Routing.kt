@@ -15,5 +15,7 @@ fun Application.configureRouting() {
         authRoutes()
         userRoutes()
         eventRoutes()
+        todoRoutes()
+        inviteRoutes()
     }
 }

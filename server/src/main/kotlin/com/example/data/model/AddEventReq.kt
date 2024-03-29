@@ -5,12 +5,13 @@ import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 
 @Serializable
-data class Event(
+data class AddEventReq(
     val eventID: String,
     val name: String,
     val description: String?,
     val startDatetime: String,
     val endDatetime: String,
     val location: String,
+    val participants: List<String>,
     val creatorID: String
 )
