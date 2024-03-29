@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -69,11 +68,8 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit) {
-    val currentRoute = navController.currentDestination?.route
-    Log.d("Navigation", "Entered NavGraph, currentRoute: $currentRoute")
     NavHost(navController, startDestination = BottomNavItem.Home.screen_route) {
         composable(BottomNavItem.Home.screen_route) {
-            Log.d("Navigation", "Entering Homepage")
             HomePage(navController)
         }
         composable(BottomNavItem.Todos.screen_route) {
@@ -167,19 +163,12 @@ object GlobalVariables {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {
-    val mainNavController = rememberNavController()
     val loginController = rememberNavController()
 
     val logout = {
         Log.d("Navigation", "Starting logout process")
-        mainNavController.popBackStack()
-        mainNavController.popBackStack("home", inclusive=false, saveState = false)
         userId = null
         Log.d("Logout", "User ID cleared")
-        mainNavController.popBackStack(mainNavController.graph.startDestinationId, inclusive = true, saveState = false)
-        val currentRoute = mainNavController.currentDestination?.route
-        Log.d("Navigation", "currentRoute: $currentRoute")
-        Log.d("Navigation", "navController back stack cleared")
         loginController.navigate("login") {
             popUpTo(loginController.graph.startDestinationId)
             {
@@ -187,7 +176,6 @@ fun App() {
             }
             Log.d("Navigation", "Navigated to login")
         }
-
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -203,6 +191,7 @@ fun App() {
                     { loginController.navigate("login") })
             }
             composable("home") {
+                val mainNavController = rememberNavController()
                 Scaffold(
                     bottomBar = { BottomNavigation(navController = mainNavController) }
                 ) {
