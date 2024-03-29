@@ -471,7 +471,7 @@ fun SignUpPhase2(onNextPhase: () -> Unit, onPreviousPhase: () -> Unit, c: Creden
             OutlinedTextField(
                 value = c.familyId,
                 onValueChange = { c.familyId = it },
-                enabled = !c.startNewFamily,
+                enabled = true,
                 label = { Text("Family ID") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
