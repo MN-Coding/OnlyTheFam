@@ -2,8 +2,6 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,8 +21,17 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Card
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.draw.clip
+import coil.compose.rememberImagePainter
+import kotlin.random.Random
 
 
 @Serializable
@@ -36,8 +43,7 @@ data class FamilyMember(
     val familyID: String
 )
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Composable
+@RequiresApi(Build.VERSION_CODES.O)@Composable
 fun FamilyPage(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     var familyMembers by remember { mutableStateOf<List<FamilyMember>?>(null) }
@@ -72,13 +78,13 @@ fun FamilyPage(navController: NavController) {
                 CircularProgressIndicator()
             }
         } else if (familyMembers != null) {
-            LazyColumn(
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(familyMembers!!) { member ->
+                familyMembers!!.forEach { member ->
                     FamilyMemberCard(member = member)
                 }
             }
@@ -123,23 +129,31 @@ private suspend fun getFamilyMembers(userId: String): List<FamilyMember>? {
 
 @Composable
 fun FamilyMemberCard(member: FamilyMember) {
+    val randomImageId = Random.nextInt(1, 100)
+    val imageUrl = "https://picsum.photos/id/$randomImageId/100/100"
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = 4.dp
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
         ) {
+            Image(
+                painter = rememberImagePainter(imageUrl),
+                contentDescription = "Profile picture of ${member.name}",
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .align(Alignment.CenterHorizontally)
+            )
+            Spacer(Modifier.height(8.dp))
             Text(text = "Name: ${member.name}", style = MaterialTheme.typography.h6)
             Text(text = "Birthday: ${member.dob}", style = MaterialTheme.typography.body1)
             Text(text = "Email: ${member.email}", style = MaterialTheme.typography.body1)
             Text(text = "Blood Type: ${member.bloodType}", style = MaterialTheme.typography.body1)
-//            if (member.allergies.isNotEmpty()) {
-//                Text(text = "Allergies: ${member.allergies.joinToString(", ")}", style = MaterialTheme.typography.body1)
-//            }
-//            if (member.otherHealthInfo.isNotEmpty()) {
-//                Text(text = "Other Health Info: ${member.otherHealthInfo}", style = MaterialTheme.typography.body1)
-//            }
         }
     }
 }
