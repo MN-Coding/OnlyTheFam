@@ -117,7 +117,6 @@ fun BottomNavigation(navController: NavController) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    Log.d("Navigation", "Bottom Navigation currentRoute: $currentRoute")
     val showBottomNav = currentRoute in bottomNavRoutes
 
     if (showBottomNav) {
