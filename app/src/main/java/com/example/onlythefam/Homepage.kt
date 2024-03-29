@@ -20,7 +20,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
@@ -35,12 +35,36 @@ import coil.compose.AsyncImagePainter
 import java.util.*
 import com.google.gson.Gson
 import coil.compose.rememberImagePainter
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomePage(navController: NavHostController) {
     val scrollState = rememberScrollState()
+    val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
+    val username = remember { GlobalVariables.username }
+    var events by remember { mutableStateOf(listOf<EventResponse>()) }
+    var todos by remember { mutableStateOf(listOf<TodosResponse>()) }
+
+    LaunchedEffect(uid) {
+        if (uid.isNotEmpty()) {
+            events = getEventsByUserId(uid)
+            todos = getTodosByUserId(uid)
+            events = events.sortedWith(compareBy { LocalDateTime.parse(it.startDatetime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) })
+            events = if (events.size > 3) {
+                events.subList(0, 3)
+            } else {
+                events
+            }
+            todos = if (todos.size > 3) {
+                todos.subList(0, 3)
+            } else {
+                todos
+            }
+        }
+    }
     Scaffold(
         topBar = { Header(navController) },
     ) {
@@ -58,9 +82,9 @@ fun HomePage(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                PreviewCard(Modifier.weight(1f), "Todos")
+                PreviewCard(Modifier.weight(1f), "Todos", events, todos)
                 Spacer(modifier = Modifier.width(16.dp))
-                PreviewCard(Modifier.weight(2f), "Events")
+                PreviewCard(Modifier.weight(2f), "Events", events, todos)
             }
             Spacer(Modifier.height(100.dp))
         }
