@@ -30,12 +30,13 @@ fun Route.authRoutes() {
         val foundUser = transaction {
             // Check if the username and password match in the Users table
             Users.select { (Users.email eq email) and (Users.password eq password) }
-                .map { User(it[Users.userID], it[Users.email], it[Users.password]) }
+                .map { User(it[Users.userID], it[Users.email], it[Users.password], it[Users.name]) }
                 .singleOrNull()
         }
 
         if (foundUser != null) {
-            call.respondText(Json.encodeToString(foundUser.userID), ContentType.Application.Json, status = HttpStatusCode.Accepted)
+            val response = mapOf("userID" to foundUser.userID, "name" to foundUser.name)
+            call.respondText(Json.encodeToString(response), ContentType.Application.Json, status = HttpStatusCode.Accepted)
         } else {
             call.respondText("Invalid username or password", status = HttpStatusCode.BadRequest)
         }
@@ -100,12 +101,11 @@ fun Route.authRoutes() {
                 }
                 }
             }
-            call.respond(HttpStatusCode.OK, userID)
+            val response = mapOf("userID" to userID, "name" to signupParams.name)
+            call.respondText(Json.encodeToString(response), ContentType.Application.Json, status = HttpStatusCode.OK)
         } catch (e: Exception) {
             call.respond(HttpStatusCode.BadRequest, "Error: " + e.message)
         }
-
-
     }
 
 }

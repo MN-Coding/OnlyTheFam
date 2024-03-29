@@ -209,7 +209,7 @@ fun Route.eventRoutes() {
                 println("checking creator 2 -------------- ${eventData.creatorID}" )
 
                 Invites.insert{
-                    it[invite_id] = java.util.UUID.randomUUID().toString()
+                    it[invite_id] = "invite"+java.util.UUID.randomUUID().toString()
                     it[event_id] = eventData.eventID
                     it[sender_user_id] = eventData.creatorID.trim('"')
                     it[receiver_user_id] = user_id

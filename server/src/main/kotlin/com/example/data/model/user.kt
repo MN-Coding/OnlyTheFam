@@ -3,7 +3,7 @@ package com.example.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class User(val userID: String, val email: String, val password: String)
+data class User(val userID: String, val email: String, val password: String, val name: String)
 
 @Serializable
 data class UserPersonal(val userID: String, val name: String, val dobstr: String)

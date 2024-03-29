@@ -19,6 +19,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.selectAll
 import com.example.data.schema.Users
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 
 fun Route.todoRoutes() {
@@ -64,7 +66,7 @@ fun Route.todoRoutes() {
                 .map { it[Users.userID] }
         }
         if (event_id_res.isNotEmpty() && user_id_res.isNotEmpty()) {
-            val todoUUID = java.util.UUID.randomUUID().toString()
+            val todoUUID = "todo"+java.util.UUID.randomUUID().toString()
             println("req ------------------" + req)
             println("creator id trimmed ------------------" + req.creator_id.trim('"'))
             println("creator id ------------------" + req.creator_id)
@@ -104,6 +106,22 @@ fun Route.todoRoutes() {
                 }
             }
             call.respondText(Json.encodeToString(result), ContentType.Application.Json, status = HttpStatusCode.OK)
+        } else {
+            call.respondText("Invalid request", status = HttpStatusCode.BadRequest)
+        }
+    }
+
+    delete("/deleteTodo") {
+        val todo_id = call.parameters["todo_id"]
+        if (todo_id != null) {
+            transaction {
+                // First delete the invite with the todo_id
+                Invites.deleteWhere { Invites.todo_id eq todo_id }
+
+                // Then delete the todo
+                Todos.deleteWhere { Todos.todo_id eq todo_id }
+            }
+            call.respondText("Todo and related invite deleted", status = HttpStatusCode.OK)
         } else {
             call.respondText("Invalid request", status = HttpStatusCode.BadRequest)
         }

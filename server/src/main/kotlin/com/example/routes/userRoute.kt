@@ -228,6 +228,40 @@ fun Route.userRoutes() {
         }
     }
 
+    get("/getFamilyMembers") {
+        val userId = call.parameters["userID"]
+        if (userId != null) {
+            val familyMembers = transaction {
+                val familyId = Users.slice(Users.familyId)
+                    .select { Users.userID eq userId }
+                    .map { it[Users.familyId] }
+                    .singleOrNull()
+
+                if (familyId != null) {
+                    Users.selectAll().where { Users.familyId eq familyId }
+                        .map { row ->
+                            UserInfo(
+                                name = row[Users.name],
+                                email = row[Users.email],
+                                bloodType = row[Users.bloodType],
+                                dob = row[Users.dob].toString(),
+                                familyID = row[Users.familyId]
+                            )
+                        }
+                } else {
+                    null
+                }
+            }
+            if (familyMembers != null) {
+                call.respond(familyMembers)
+            } else {
+                call.respondText("Family not found or User ID invalid", status = HttpStatusCode.NotFound)
+            }
+        } else {
+            call.respondText("Missing userId", status = HttpStatusCode.BadRequest)
+        }
+    }
+
     // get all names of users
     get("/getallusernames") {
         val usersList = transaction {
