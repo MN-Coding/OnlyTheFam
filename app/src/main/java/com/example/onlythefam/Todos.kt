@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -37,10 +38,25 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.navigation.NavController
+import io.ktor.client.request.delete
+import io.ktor.client.request.setBody
+import kotlinx.coroutines.launch
 
 @Serializable
 data class TodosResponse(
@@ -50,8 +66,8 @@ data class TodosResponse(
     val description: String,
     val price: Int,
     val assigned_user_id: String,
+    val creator_id: String,
 )
-
 // For UI state management
 data class TodosUiModel(
     val todosResponse: TodosResponse,
@@ -59,30 +75,43 @@ data class TodosUiModel(
     var expanded by mutableStateOf(false)
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TodosPage(navController: NavController) {
     val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
-    val todosUIModel = remember { mutableStateListOf<TodosUiModel>() }
+    val username = remember { GlobalVariables.username }
+    val todosUIModel = remember { mutableStateOf(listOf<TodosUiModel>()) }
 
-    LaunchedEffect(uid) {
+    val coroutineScope = rememberCoroutineScope()
+
+    suspend fun fetchTodos() {
         if (uid.isNotEmpty()) {
             val todos = getTodosByUserId(uid)
-            todosUIModel.addAll(todos.map { TodosUiModel(it) })
+            todosUIModel.value = todos.map { TodosUiModel(it) }
+        }
+    }
+
+    LaunchedEffect(uid) {
+        coroutineScope.launch {
+            fetchTodos()
         }
     }
 
     Scaffold {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            if (todosUIModel.isEmpty()) {
-                Text(
-                    text = "No current todos",
-                    style = MaterialTheme.typography.body1,
-                    modifier = Modifier.padding(16.dp)
-                )
-            } else {
-                todosUIModel.forEach { todo ->
-                    TodoCard(todoUiModel = todo, navController = navController)
+        Column {
+            Text(text = "${username}'s Todos", style = MaterialTheme.typography.h4, modifier = Modifier.padding(16.dp))
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                if (todosUIModel.value.isEmpty()) {
+                    Text(
+                        text = "No current todos",
+                        style = MaterialTheme.typography.body1,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else {
+                    todosUIModel.value.forEach { todo ->
+                        TodoCard(todoUiModel = todo, navController = navController, onDone = { coroutineScope.launch { fetchTodos() } })
+                    }
                 }
             }
         }
@@ -90,12 +119,20 @@ fun TodosPage(navController: NavController) {
 }
 
 @Composable
-fun TodoCard(todoUiModel: TodosUiModel, navController: NavController) {
+fun ExpandableCard(
+    title: String,
+    description: String,
+    price: String,
+    expanded: Boolean,
+    onExpand: () -> Unit,
+    todoID: String,
+    onDone: () -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
     Card(
         modifier = Modifier
             .padding(10.dp)
-            .fillMaxWidth()
-            .clickable { navController.navigate("todoDetails/${todoUiModel.todosResponse.todoID}") },
+            .fillMaxWidth(),
         backgroundColor = MaterialTheme.colors.surface,
         shape = RoundedCornerShape(16.dp),
         elevation = 8.dp,
@@ -104,23 +141,65 @@ fun TodoCard(todoUiModel: TodosUiModel, navController: NavController) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = todoUiModel.todosResponse.name,
-                style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = todoUiModel.todosResponse.description,
-                style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = todoUiModel.todosResponse.price.toString(),
-                style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                IconButton(onClick = onExpand) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                        contentDescription = if (expanded) "Collapse" else "Expand"
+                    )
+                }
+            }
+
+            if (expanded) {
+                Text(
+                    text = "description: $description",
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = "cost: $price",
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Button(
+                    onClick = { coroutineScope.launch { GlobalVariables.userId?.trim('"')?.let {
+                        if (deleteTodo(todoID)) {
+                            Log.d("TodosPage", "Todo deleted successfully")
+                            onDone()
+                        } else {
+                            Log.d("TodosPage", "Failed to delete todo")
+                        }
+                    } } },
+                    modifier = Modifier.fillMaxWidth().wrapContentWidth(Alignment.End)
+                ) {
+                    Text("Done")
+                }
+            }
         }
     }
+}
+
+@Composable
+fun TodoCard(todoUiModel: TodosUiModel, navController: NavController, onDone: () -> Unit) {
+    val (expanded, setExpanded) = remember { mutableStateOf(false) }
+
+    ExpandableCard(
+        title = todoUiModel.todosResponse.name,
+        description = todoUiModel.todosResponse.description,
+        price = todoUiModel.todosResponse.price.toString(),
+        expanded = expanded,
+        onExpand = { setExpanded(!expanded) },
+        todoID = todoUiModel.todosResponse.todoID,
+        onDone = onDone
+    )
 }
 
 private suspend fun getTodosByUserId(userId: String): List<TodosResponse> {
@@ -153,6 +232,41 @@ private suspend fun getTodosByUserId(userId: String): List<TodosResponse> {
     } catch (e: Exception) {
         Log.e("TodosPage", "Error fetching todos", e)
         emptyList()
+    } finally {
+        client.close()
+    }
+}
+
+private suspend fun deleteTodo(todoID: String): Boolean {
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json()
+        }
+    }
+
+    return try {
+        val deleteTodoEndpoint = "http://${GlobalVariables.localIP}:5050/deleteTodo?todo_id=${todoID}"
+        Log.d("deleteTodo", "Deleting todos from: $deleteTodoEndpoint")
+        Log.d("deleteTodo", todoID)
+        val response: HttpResponse = withContext(Dispatchers.IO) {
+            client.delete(deleteTodoEndpoint) {
+                contentType(ContentType.Application.Json)
+            }
+        }
+        Log.d("deleteTodo", "Response status: ${response.status}")
+
+        if (response.status == HttpStatusCode.OK) {
+
+            return true
+
+        } else {
+
+            return false
+
+        }
+    } catch (e: Exception) {
+        Log.e("TodosPage", "Error deleting todo" + todoID, e)
+        return false
     } finally {
         client.close()
     }

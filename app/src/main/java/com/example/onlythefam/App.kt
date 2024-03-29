@@ -1,6 +1,8 @@
 package com.example.onlythefam
 
+import FamilyPage
 import TodoEventScreen
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
@@ -38,9 +40,10 @@ fun Events(navController: NavController) {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Family() {
-    Text("Family")
+fun Family(navController: NavController) {
+    FamilyPage(navController = navController)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -54,7 +57,9 @@ sealed class BottomNavItem(val screen_route: String, val icon: ImageVector, val 
     object Todos : BottomNavItem("todos", Icons.Rounded.List, "Todos")
     object Add : BottomNavItem("add", Icons.Rounded.Add, "Add")
     object Events : BottomNavItem("events", Icons.Rounded.Event, "Events")
+    object Inbox : BottomNavItem("inbox", Icons.Rounded.Inbox, "Inbox")
     object Family : BottomNavItem("family", Icons.Rounded.Group, "Family")
+
 }
 
 
@@ -75,7 +80,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
             Events(navController = navController)
         }
         composable(BottomNavItem.Family.screen_route) {
-            Family()
+            Family(navController = navController)
         }
         composable("profileSettings"){
             SettingsPage(onGoBack = {navController.popBackStack()},
@@ -91,6 +96,7 @@ fun NavigationGraph(navController: NavHostController, logoutProcess: () -> Unit)
         composable("add_todo") { AddTodo(navController) }
         composable("add_event") { AddEvent(navController) }
         composable("todo_event_screen") { TodoEventScreen(navController) }
+        composable("inbox") { Inbox(navController) }
     }
 }
 
@@ -101,9 +107,11 @@ fun BottomNavigation(navController: NavController) {
         BottomNavItem.Todos,
         BottomNavItem.Add,
         BottomNavItem.Events,
-        BottomNavItem.Family
+        BottomNavItem.Family,
+        BottomNavItem.Inbox
     )
-    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family", "todo_event_screen", "add_event", "add_todo")
+    val bottomNavRoutes = setOf("home", "todos", "add", "events", "family", "todo_event_screen",
+        "add_event", "add_todo", "inbox")
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -144,9 +152,11 @@ fun BottomNavigation(navController: NavController) {
 
 object GlobalVariables {
     var userId: String? = null
+    var username: String? = null
     val localIP: String? = "10.0.2.2"
 }
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {

@@ -338,7 +338,7 @@ fun SignUpPhase1(onNextPhase: () -> Unit, gotologin: () -> Unit, c: Credentials)
 
 }
 
-fun checkFamilyId(
+fun checkIfCanJoinFamily(
     familyId: String,
     scaffoldState: ScaffoldState,
     coroutineScope: CoroutineScope,
@@ -369,6 +369,44 @@ fun checkFamilyId(
             e.printStackTrace()
         }
         load.value = false
+    }
+}
+
+private fun checkIfCanCreateFamily(
+    familyId: String,
+    scaffoldState: ScaffoldState,
+    coroutineScope: CoroutineScope,
+    onNextPhase: () -> Unit
+) {
+    load.value = true
+    coroutineScope.launch(Dispatchers.IO) {
+        val client = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+        val url = "http://${GlobalVariables.localIP}:5050/familyExists?familyId=$familyId"
+
+        try {
+            val response: HttpResponse = client.get(url) {
+                contentType(ContentType.Application.Json)
+            }
+            val status = response.status
+            if (status == HttpStatusCode.NotFound) {
+                withContext(Dispatchers.Main) {
+                    onNextPhase()
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    scaffoldState.snackbarHostState.showSnackbar("A family with this ID already exists.")
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            load.value = false
+            client.close()
+        }
     }
 }
 
@@ -433,7 +471,7 @@ fun SignUpPhase2(onNextPhase: () -> Unit, onPreviousPhase: () -> Unit, c: Creden
             OutlinedTextField(
                 value = c.familyId,
                 onValueChange = { c.familyId = it },
-                enabled = !c.startNewFamily,
+                enabled = true,
                 label = { Text("Family ID") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -479,9 +517,9 @@ fun SignUpPhase2(onNextPhase: () -> Unit, onPreviousPhase: () -> Unit, c: Creden
                     onClick = {
                         load.value = true
                         if (!c.startNewFamily) {
-                            checkFamilyId(c.familyId, scaffoldState, coroutineScope, onNextPhase)
+                            checkIfCanJoinFamily(c.familyId, scaffoldState, coroutineScope, onNextPhase)
                         } else {
-                            onNextPhase()
+                            checkIfCanCreateFamily(c.familyId, scaffoldState, coroutineScope, onNextPhase)
                         }
                     }) {
                     Text(text = "Next")
@@ -495,11 +533,11 @@ fun SignUpPhase2(onNextPhase: () -> Unit, onPreviousPhase: () -> Unit, c: Creden
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun Dropdown(title: String) {
+fun Dropdown(title: String, c: Credentials) {
     val context = LocalContext.current
     val bloodTypes = arrayOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
     var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf("not selected") }
+    var selectedText by remember { mutableStateOf(c.bloodType.ifBlank { "not selected" }) }
 
     Text(
         title,
@@ -533,6 +571,7 @@ fun Dropdown(title: String) {
                     DropdownMenuItem(
                         onClick = {
                             selectedText = item
+                            c.bloodType = item
                             expanded = false
                             Toast.makeText(context, item, Toast.LENGTH_SHORT).show()
                         }
@@ -588,7 +627,7 @@ fun SignUpPhase3(onPreviousPhase: () -> Unit, onsignup: () -> Unit, c: Credentia
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Dropdown(title = "Blood Type")
+            Dropdown(title = "Blood Type", c)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -764,7 +803,12 @@ private fun signUp(
             }
             if (response.status == HttpStatusCode.OK) {
                 load.value = false
-                GlobalVariables.userId = response.bodyAsText()
+                val responseBody = Json.decodeFromString<LoginResponse>(response.bodyAsText())
+                GlobalVariables.userId = responseBody.userID
+                GlobalVariables.username = responseBody.name
+                // log each global variable
+                Log.d(TAG, "signUp: ${GlobalVariables.userId}")
+                Log.d(TAG, "signUp: ${GlobalVariables.username}")
                 redirectOnSignup()
             } else {
                 scaffoldState.snackbarHostState.showSnackbar(response.bodyAsText())

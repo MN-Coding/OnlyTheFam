@@ -32,6 +32,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.FileInputStream
 import java.io.File
 import java.util.*
@@ -125,6 +126,9 @@ fun LoginScreen(onlogin: () -> Unit, gotosignup: () -> Unit) {
 @Serializable
 data class LoginRequest(val email: String, val password: String)
 
+@Serializable
+data class LoginResponse(val userID: String, val name: String)
+
 private fun signIn(email: String, password: String, scaffoldState: ScaffoldState, coroutineScope: CoroutineScope, onlogin: () -> Unit) {
     loading.value = true
     CoroutineScope(Dispatchers.Main).launch {
@@ -146,7 +150,9 @@ private fun signIn(email: String, password: String, scaffoldState: ScaffoldState
                 loading.value = false
                 throw Exception("Error " + status.value.toString())
             }
-            GlobalVariables.userId = response.bodyAsText()
+            val responseBody = Json.decodeFromString<LoginResponse>(response.bodyAsText())
+            GlobalVariables.userId = responseBody.userID
+            GlobalVariables.username = responseBody.name
             scaffoldState.snackbarHostState.showSnackbar("Sign-in successful")
             loading.value = false
             onlogin()

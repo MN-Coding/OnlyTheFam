@@ -12,4 +12,5 @@ data class Event(
     val startDatetime: String,
     val endDatetime: String,
     val location: String,
+    val creatorID: String
 )
