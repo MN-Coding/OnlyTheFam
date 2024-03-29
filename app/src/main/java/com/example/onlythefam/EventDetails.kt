@@ -86,21 +86,23 @@ fun EventDetails(navController: NavController, eventId: String) {
             Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
                 if (!inEditMode) {
                     StaticEventDetails(eventDetails, editedDescription, allergies)
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = { inEditMode = !inEditMode },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                    {
+                        Text("Edit Event Details")
+                    }
                 } else {
                     EditEventDetails(eventDetails, editedDescription, allergies)
-                }
-                Spacer(Modifier.height(12.dp))
-                var updateEventDetails = "Update Event Details"
-                var editEventDetails = "Edit Event Details"
-                Button(
-                    onClick = { inEditMode = !inEditMode },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                {
-                    if (inEditMode) {
-                        Text(updateEventDetails)
-                    } else {
-                        Text(editEventDetails)
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = { inEditMode = !inEditMode },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                    {
+                        Text("Update Event Details")
                     }
                 }
             }

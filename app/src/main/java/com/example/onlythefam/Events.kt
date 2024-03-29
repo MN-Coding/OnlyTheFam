@@ -42,7 +42,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
+import com.example.onlythefam.ui.theme.Blue700
 
 @Serializable
 data class EventResponse(
@@ -100,10 +102,11 @@ fun EventCard(eventUiModel: EventUiModel, navController: NavController) {
             .padding(10.dp)
             .fillMaxWidth()
             .clickable { navController.navigate("eventDetails/${eventUiModel.eventResponse.eventID}") },
-        backgroundColor = MaterialTheme.colors.surface,
+        backgroundColor = Blue700,
         shape = RoundedCornerShape(16.dp),
         elevation = 8.dp,
-        border = BorderStroke(1.dp, Color.Gray)
+        border = BorderStroke(1.dp, Color.Gray),
+        contentColor = Color.White,
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -111,7 +114,8 @@ fun EventCard(eventUiModel: EventUiModel, navController: NavController) {
             Text(
                 text = eventUiModel.eventResponse.name,
                 style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
+                fontWeight = FontWeight.Bold
             )
         }
     }
