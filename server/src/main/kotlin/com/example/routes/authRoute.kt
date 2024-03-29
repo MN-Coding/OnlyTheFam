@@ -54,24 +54,11 @@ fun Route.authRoutes() {
     }
 
     post("/signup") {
-//        val signupParams = call.receive<UserSignup>()
         val jsonBody = call.receive<String>()
         val signupParams = Json.decodeFromString<UserSignup>(jsonBody)
         val dob = LocalDate.parse(signupParams.dobstr)
 
         var userID: String
-        var familyID: String
-
-        if (signupParams.startNewFamily) {
-            do {
-                familyID = UUID.randomUUID().toString()
-            } while (transaction {
-                    Users.select { Users.familyId eq familyID }.count() > 0
-                })
-        } else {
-            familyID = "pending"
-            // send request to family
-        }
 
         do {
             userID = UUID.randomUUID().toString()
@@ -87,7 +74,7 @@ fun Route.authRoutes() {
                     row[name] = signupParams.name
                     row[email] = signupParams.email
                     row[Users.dob] = dob
-                    row[familyId] = familyID
+                    row[familyId] = signupParams.familyId
                     row[password] = signupParams.password
                     row[bloodType] = signupParams.bloodType
                     row[otherHealth] = signupParams.otherHealth
