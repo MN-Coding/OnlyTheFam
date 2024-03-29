@@ -210,13 +210,14 @@ fun AddTodo(navController: NavController) {
 
     Scaffold(
         topBar = {
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "Add Todo",
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    style = TextStyle(fontSize = 36.sp),
-                    modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                    style = TextStyle(fontSize = 36.sp)
                 )
             }
         }
@@ -227,11 +228,11 @@ fun AddTodo(navController: NavController) {
                 .verticalScroll(scrollState, enabled = true)
         ) {
             EditableTextField(
-                fieldName = "Todo Name",
+                fieldName = "Todo Name:",
                 fieldVal = todoName,
                 onChange = { updated -> todoName = updated })
 
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(12.dp))
 
             Text("Event:", fontWeight = FontWeight.Bold)
             Box {
@@ -261,15 +262,15 @@ fun AddTodo(navController: NavController) {
                 }
             }
 
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(12.dp))
 
             EditableTextField(
-                fieldName = "Description",
+                fieldName = "Description:",
                 fieldVal = description,
                 onChange = { updated -> description = updated })
 
             EditableTextField(
-                fieldName = "Price",
+                fieldName = "Price:",
                 fieldVal = price,
                 onChange = { updated -> price = updated })
 
@@ -300,6 +301,8 @@ fun AddTodo(navController: NavController) {
                     }
                 }
             }
+
+            Spacer(Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Button(onClick = { navController.navigate("todo_event_screen") }) {

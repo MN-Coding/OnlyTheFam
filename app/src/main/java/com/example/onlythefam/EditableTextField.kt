@@ -51,7 +51,7 @@ fun EditableTextField(fieldName: String, fieldVal: String, onChange: (String) ->
                     .wrapContentWidth(Alignment.Start)
             )
             {
-                Text(fieldName, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Text(fieldName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 OutlinedTextField(
                     value = fieldVal,
                     onValueChange = {},

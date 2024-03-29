@@ -94,9 +94,9 @@ fun EventDetails(navController: NavController, eventId: String) {
         event.value?.let { eventDetails ->
             Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
                 if (!inEditMode) {
-                    StaticEventDetails(eventDetails, innerPadding, editedDescription, allergies)
+                    StaticEventDetails(eventDetails, editedDescription, allergies)
                 } else {
-                    EditEventDetails(eventDetails, innerPadding, editedDescription, allergies)
+                    EditEventDetails(eventDetails, editedDescription, allergies)
                 }
                 Spacer(Modifier.height(12.dp))
                 var updateEventDetails = "Update Event Details"
@@ -121,7 +121,6 @@ fun EventDetails(navController: NavController, eventId: String) {
 @Composable
 fun StaticEventDetails(
     eventDetails: EventResponse,
-    innerPadding: PaddingValues,
     editedDescription: MutableState<String>,
     allergies: MutableState<List<String>>
 ) {
@@ -202,7 +201,6 @@ fun StaticEventDetails(
 @Composable
 fun EditEventDetails(
     eventDetails: EventResponse,
-    innerPadding: PaddingValues,
     editedDescription: MutableState<String>,
     allergies: MutableState<List<String>>
 ) {
