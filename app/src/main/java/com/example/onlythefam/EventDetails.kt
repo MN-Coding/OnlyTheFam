@@ -1,12 +1,9 @@
 package com.example.onlythefam
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,25 +41,19 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import java.net.URLEncoder
 import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextField
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -131,16 +122,20 @@ fun StaticEventDetails(
         modifier = Modifier.padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.AccessTime, contentDescription = "Time")
+        Icon(Icons.Filled.AccessTime, contentDescription = "Time", modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(4.dp))
         Text(
-            text = "Start: ${
-                LocalDateTime.parse(
-                    eventDetails.startDatetime,
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                ).format(
-                    formatter
-                )
-            }",
+            text = "Start: ",
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = LocalDateTime.parse(
+                eventDetails.startDatetime,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            ).format(
+                formatter
+            ),
             style = MaterialTheme.typography.body1
         )
     }
@@ -149,16 +144,20 @@ fun StaticEventDetails(
         modifier = Modifier.padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.AccessTime, contentDescription = "Time")
+        Icon(Icons.Filled.AccessTime, contentDescription = "Time", modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(4.dp))
         Text(
-            text = "End: ${
-                LocalDateTime.parse(
-                    eventDetails.endDatetime,
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                ).format(
-                    formatter
-                )
-            }",
+            text = "End: ",
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = LocalDateTime.parse(
+                eventDetails.endDatetime,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            ).format(
+                formatter
+            ),
             style = MaterialTheme.typography.body1
         )
     }
@@ -167,21 +166,45 @@ fun StaticEventDetails(
         modifier = Modifier.padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.LocationOn, contentDescription = "Location")
-        Text(text = "Location: ${eventDetails.location}", style = MaterialTheme.typography.body1)
+        Icon(Icons.Filled.LocationOn, contentDescription = "Location", modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(text = "Location: ", style = MaterialTheme.typography.body1, fontWeight = FontWeight.Bold)
+        Text(text = eventDetails.location, style = MaterialTheme.typography.body1)
     }
     Spacer(Modifier.height(12.dp))
-    Text(
+    Row(
         modifier = Modifier.padding(top = 8.dp),
-        text = "Participants: ${eventDetails.participants.joinToString(", ")}",
-        style = MaterialTheme.typography.body1
-    )
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = "Participants: ",
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = eventDetails.participants.joinToString(", "),
+            style = MaterialTheme.typography.body1
+        )
+    }
     Spacer(Modifier.height(12.dp))
-    Text(
+    Row(
         modifier = Modifier.padding(top = 8.dp),
-        text = "Allergies: ${allergies.value.joinToString(", ")}",
-        style = MaterialTheme.typography.body1
-    )
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = "Allergies: ",
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = allergies.value.joinToString(", "),
+            style = MaterialTheme.typography.body1
+        )
+    }
     Spacer(Modifier.height(12.dp))
     val address = eventDetails.location
     val encodedAddress = URLEncoder.encode(address, "UTF-8")
@@ -215,16 +238,20 @@ fun EditEventDetails(
         modifier = Modifier.padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.AccessTime, contentDescription = "Time")
+        Icon(Icons.Filled.AccessTime, contentDescription = "Time", modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(4.dp))
         Text(
-            text = "Start: ${
-                LocalDateTime.parse(
-                    eventDetails.startDatetime,
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                ).format(
-                    formatter
-                )
-            }",
+            text = "Start: ",
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = LocalDateTime.parse(
+                eventDetails.startDatetime,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            ).format(
+                formatter
+            ),
             style = MaterialTheme.typography.body1
         )
     }
@@ -233,16 +260,20 @@ fun EditEventDetails(
         modifier = Modifier.padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.AccessTime, contentDescription = "Time")
+        Icon(Icons.Filled.AccessTime, contentDescription = "Time", modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(4.dp))
         Text(
-            text = "End: ${
-                LocalDateTime.parse(
-                    eventDetails.endDatetime,
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                ).format(
-                    formatter
-                )
-            }",
+            text = "End: ",
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = LocalDateTime.parse(
+                eventDetails.endDatetime,
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            ).format(
+                formatter
+            ),
             style = MaterialTheme.typography.body1
         )
     }
@@ -251,24 +282,45 @@ fun EditEventDetails(
         modifier = Modifier.padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Filled.LocationOn, contentDescription = "Location")
+        Icon(Icons.Filled.LocationOn, contentDescription = "Location", modifier = Modifier.size(24.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(text = "Location: ", style = MaterialTheme.typography.body1, fontWeight = FontWeight.Bold)
+        Text(text = eventDetails.location, style = MaterialTheme.typography.body1)
+    }
+    Spacer(Modifier.height(12.dp))
+    Row(
+        modifier = Modifier.padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            text = "Location: ${eventDetails.location}",
+            modifier = Modifier.padding(top = 8.dp),
+            text = "Participants: ",
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = eventDetails.participants.joinToString(", "),
             style = MaterialTheme.typography.body1
         )
     }
     Spacer(Modifier.height(12.dp))
-    Text(
+    Row(
         modifier = Modifier.padding(top = 8.dp),
-        text = "Participants: ${eventDetails.participants.joinToString(", ")}",
-        style = MaterialTheme.typography.body1
-    )
-    Spacer(Modifier.height(12.dp))
-    Text(
-        modifier = Modifier.padding(top = 8.dp),
-        text = "Allergies: ${allergies.value.joinToString(", ")}",
-        style = MaterialTheme.typography.body1
-    )
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = "Allergies: ",
+            style = MaterialTheme.typography.body1,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            modifier = Modifier.padding(top = 8.dp),
+            text = allergies.value.joinToString(", "),
+            style = MaterialTheme.typography.body1
+        )
+    }
     Spacer(Modifier.height(12.dp))
     val address = eventDetails.location
     val encodedAddress = URLEncoder.encode(address, "UTF-8")
