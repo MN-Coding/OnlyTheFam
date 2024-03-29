@@ -533,11 +533,11 @@ fun SignUpPhase2(onNextPhase: () -> Unit, onPreviousPhase: () -> Unit, c: Creden
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun Dropdown(title: String) {
+fun Dropdown(title: String, c: Credentials) {
     val context = LocalContext.current
     val bloodTypes = arrayOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
     var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf("not selected") }
+    var selectedText by remember { mutableStateOf(c.bloodType.ifBlank { "not selected" }) }
 
     Text(
         title,
@@ -571,6 +571,7 @@ fun Dropdown(title: String) {
                     DropdownMenuItem(
                         onClick = {
                             selectedText = item
+                            c.bloodType = item
                             expanded = false
                             Toast.makeText(context, item, Toast.LENGTH_SHORT).show()
                         }
@@ -626,7 +627,7 @@ fun SignUpPhase3(onPreviousPhase: () -> Unit, onsignup: () -> Unit, c: Credentia
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Dropdown(title = "Blood Type")
+            Dropdown(title = "Blood Type", c)
 
             Spacer(modifier = Modifier.height(16.dp))
 
