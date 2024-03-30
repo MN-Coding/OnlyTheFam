@@ -1,5 +1,6 @@
 package com.example.onlythefam
 
+import FamilyMember
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Build
@@ -53,6 +54,7 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
+import getFamilyMembers
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -177,11 +179,16 @@ fun AddEvent(navController: NavController) {
     }
 
     val coroutineScope = rememberCoroutineScope()
+    var familyMembers by remember { mutableStateOf<List<FamilyMember>?>(null) }
     var usernameOptions by remember { mutableStateOf(listOf<String>()) }
 
     LaunchedEffect(key1 = Unit) {
         coroutineScope.launch {
-            usernameOptions = getAllUsernames()
+            familyMembers = GlobalVariables.userId?.let { getFamilyMembers(
+                GlobalVariables.userId!!) }
+            usernameOptions = familyMembers?.filter { it.name != GlobalVariables.username }
+                ?.map { it.name }
+                ?: listOf()
         }
     }
 
