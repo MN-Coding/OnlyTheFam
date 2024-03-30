@@ -121,7 +121,7 @@ fun EventCard(eventUiModel: EventUiModel, navController: NavController) {
     }
 }
 
-private suspend fun getEventsByUserId(userId: String): List<EventResponse> {
+suspend fun getEventsByUserId(userId: String): List<EventResponse> {
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json()

@@ -206,7 +206,7 @@ fun TodoCard(todoUiModel: TodosUiModel, navController: NavController, onDone: ()
     )
 }
 
-private suspend fun getTodosByUserId(userId: String): List<TodosResponse> {
+suspend fun getTodosByUserId(userId: String): List<TodosResponse> {
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json()

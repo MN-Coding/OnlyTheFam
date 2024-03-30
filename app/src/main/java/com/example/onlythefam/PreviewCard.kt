@@ -50,7 +50,7 @@ val temp_events = listOf(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun PreviewCard(m: Modifier = Modifier, title: String) {
+fun PreviewCard(m: Modifier = Modifier, title: String, events: List<EventResponse>, todos: List<TodosResponse>) {
     Column(
         modifier = m,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -72,9 +72,9 @@ fun PreviewCard(m: Modifier = Modifier, title: String) {
                 modifier = Modifier.padding(16.dp)
             ) {
                 if (title == "Events") {
-                    temp_events.map {e -> EventItem(e)}
+                    events.map {e -> EventItem(e)}
                 } else {
-                    temp_todos.map {t -> TodoItem(t)}
+                    todos.map {t -> TodoItem(t)}
                 }
             }
         }
@@ -82,7 +82,7 @@ fun PreviewCard(m: Modifier = Modifier, title: String) {
 }
 
 @Composable
-fun TodoItem(t: TodoPreview) {
+fun TodoItem(t: TodosResponse) {
     Card(
         backgroundColor = Blue200,
         contentColor = Color.White,
@@ -132,15 +132,15 @@ fun formatTime12Hour(localDateTime: LocalDateTime): String {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun EventItem(e: EventPreview) {
+fun EventItem(e: EventResponse) {
     Row() {
         Column(modifier = Modifier.weight(1f)) {
             Row() {
                 Icon(Icons.Rounded.CalendarToday, null,modifier = Modifier.size(15.dp))
-                Text(formatDate(e.date),fontSize = 10.sp)
+                Text(formatDate(LocalDateTime.parse(e.startDatetime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))),fontSize = 10.sp)
             }
             Card(
-                backgroundColor = Blue700,
+                backgroundColor = Blue200,
                 contentColor = Color.White,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -154,11 +154,12 @@ fun EventItem(e: EventPreview) {
             }
         }
         Row(
-//            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxHeight()
         ) {
             Icon(Icons.Rounded.Timer, null, modifier = Modifier.size(15.dp))
-            Text(formatTime12Hour(e.date), fontSize = 10.sp)
+            Text(formatTime12Hour(LocalDateTime.parse(e.startDatetime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))), fontSize = 10.sp)
         }
     }
     Spacer(modifier = Modifier.height(8.dp))
