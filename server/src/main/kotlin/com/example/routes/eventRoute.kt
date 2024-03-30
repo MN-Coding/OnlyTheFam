@@ -2,6 +2,7 @@ package com.example.routes
 
 import com.example.data.model.AddEventReq
 import com.example.data.model.Event
+import com.example.data.model.UserPersonal
 import com.example.data.schema.Allergies
 import com.example.data.schema.Event_Participants
 import com.example.data.schema.Events
@@ -16,14 +17,17 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 fun Route.eventRoutes() {
 
@@ -263,4 +267,24 @@ fun Route.eventRoutes() {
         //call.respond(HttpStatusCode.OK, allAllergies)
 
     }
+
+    put("/updateEventDescription"){
+        val eventInfo = call.receive<Event>()
+        val id = eventInfo.eventID
+        val newDescription = eventInfo.description
+
+        val updatedEntries = transaction {
+            Events.update({ Events.event_id eq id }){
+                it[description] = newDescription
+            }
+        }
+
+        if (updatedEntries > 0){
+            call.respond(HttpStatusCode.OK, "event description updated successfully")
+        }
+        else{
+            call.respond(HttpStatusCode.NotFound, "Event not found")
+        }
+    }
+
 }
