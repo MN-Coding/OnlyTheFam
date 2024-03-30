@@ -268,14 +268,16 @@ fun Route.eventRoutes() {
 
     }
 
-    put("/updateEventDescription"){
+    put("/updateEvent"){
         val eventInfo = call.receive<Event>()
         val id = eventInfo.eventID
         val newDescription = eventInfo.description
+        val newLocation = eventInfo.location
 
         val updatedEntries = transaction {
             Events.update({ Events.event_id eq id }){
                 it[description] = newDescription
+                it[location] = newLocation
             }
         }
 

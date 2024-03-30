@@ -1,7 +1,10 @@
 package com.example.onlythefam
 
+import android.app.Activity
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -47,17 +50,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import java.net.URLEncoder
 import androidx.compose.material.Button
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextField
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -67,6 +76,7 @@ fun EventDetails(navController: NavController, eventId: String) {
     val event = remember { mutableStateOf<EventResponse?>(null) }
     var inEditMode by remember { mutableStateOf(false) }
     val editedDescription = remember { mutableStateOf("") }
+    val editedLocation = remember { mutableStateOf("") }
     val allergies = remember { mutableStateOf<List<String>>(listOf()) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -74,6 +84,7 @@ fun EventDetails(navController: NavController, eventId: String) {
     LaunchedEffect(eventId) {
         event.value = getEventById(eventId)
         editedDescription.value = event.value?.description ?: ""
+        editedLocation.value = event.value?.location ?: ""
         allergies.value = getParticipantAllergies(eventId)
     }
 
@@ -93,7 +104,7 @@ fun EventDetails(navController: NavController, eventId: String) {
         event.value?.let { eventDetails ->
             Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
                 if (!inEditMode) {
-                    StaticEventDetails(eventDetails, editedDescription, allergies)
+                    StaticEventDetails(eventDetails, allergies)
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = { inEditMode = !inEditMode },
@@ -103,14 +114,24 @@ fun EventDetails(navController: NavController, eventId: String) {
                         Text("Edit Event Details")
                     }
                 } else {
-                    EditEventDetails(eventDetails, editedDescription, allergies)
+                    EditEventDetails(eventDetails, editedDescription, editedLocation, allergies)
                     Spacer(Modifier.height(12.dp))
                     Button(
-                        onClick = { inEditMode = !inEditMode; updateEventDescription(eventDetails, editedDescription.value, coroutineScope) },
+                        onClick = { inEditMode = !inEditMode;
+                            updateEvent(eventDetails, editedDescription.value, editedLocation.value, coroutineScope);
+                                  navController.navigate("events")},
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                     {
                         Text("Update Event Details")
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Button(
+                        onClick = { inEditMode = !inEditMode },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                    {
+                        Text("Cancel")
                     }
                 }
             }
@@ -118,9 +139,9 @@ fun EventDetails(navController: NavController, eventId: String) {
     }
 }
 
-private fun updateEventDescription(eventDetails: EventResponse, newDescription: String, coroutineScope: CoroutineScope) {
+private fun updateEvent(eventDetails: EventResponse, newDescription: String, newLocation: String, coroutineScope: CoroutineScope) {
     coroutineScope.launch {
-        val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateEventDescription"
+        val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateEvent"
         val client = HttpClient(CIO) {
             install(ContentNegotiation) {
                 json()
@@ -130,7 +151,7 @@ private fun updateEventDescription(eventDetails: EventResponse, newDescription: 
             client.put(userEndpoint) {
                 contentType(ContentType.Application.Json)
                 setBody(Event(eventDetails.eventID, "", newDescription,
-                    "", "", "", ""))
+                    "", "", newLocation, ""))
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -144,10 +165,9 @@ private fun updateEventDescription(eventDetails: EventResponse, newDescription: 
 @Composable
 fun StaticEventDetails(
     eventDetails: EventResponse,
-    editedDescription: MutableState<String>,
     allergies: MutableState<List<String>>
 ) {
-    Text(text = editedDescription.value, style = MaterialTheme.typography.body1)
+    Text(text = eventDetails.description, style = MaterialTheme.typography.body1)
     val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy h:mma")
     Spacer(Modifier.height(12.dp))
     Row(
@@ -257,6 +277,7 @@ fun StaticEventDetails(
 fun EditEventDetails(
     eventDetails: EventResponse,
     editedDescription: MutableState<String>,
+    editedLocation: MutableState<String>,
     allergies: MutableState<List<String>>
 ) {
     Text(text = "Description:", style = MaterialTheme.typography.body1, fontWeight = FontWeight.Bold)
@@ -310,15 +331,38 @@ fun EditEventDetails(
         )
     }
     Spacer(Modifier.height(12.dp))
-    Row(
-        modifier = Modifier.padding(top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Filled.LocationOn, contentDescription = "Location", modifier = Modifier.size(24.dp))
-        Spacer(Modifier.width(4.dp))
-        Text(text = "Location: ", style = MaterialTheme.typography.body1, fontWeight = FontWeight.Bold)
-        Text(text = eventDetails.location, style = MaterialTheme.typography.body1)
+    val context = LocalContext.current
+    // Initialize Places if not already done
+    if (!Places.isInitialized()) {
+        Places.initialize(context, context.getString(R.string.google_maps_key))
     }
+
+    val fields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS)
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val place = Autocomplete.getPlaceFromIntent(result.data!!)
+            editedLocation.value = place.address ?: ""
+        }
+    }
+    // Open Google Places Autocomplete
+    fun openPlacesAutocomplete() {
+        val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
+            .build(context)
+        launcher.launch(intent)
+    }
+    Text("Location:", fontWeight = FontWeight.Bold)
+    OutlinedTextField(
+        value = editedLocation.value,
+        onValueChange = { editedLocation.value = it },
+        modifier = Modifier.fillMaxWidth(),
+        readOnly = true,  // Location is read-only. To edit have to click magnifying glass
+        trailingIcon = {
+            IconButton(onClick = { openPlacesAutocomplete() }) {
+                Icon(Icons.Filled.Search, contentDescription = "Search Location")
+            }
+        }
+    )
     Spacer(Modifier.height(12.dp))
     Row(
         modifier = Modifier.padding(top = 8.dp),
