@@ -186,7 +186,7 @@ fun Route.eventRoutes() {
         transaction {
             Events.insert { event ->
                 event[event_id] = eventData.eventID
-                event[name] = eventData .name
+                event[name] = eventData.name
                 event[description] = eventData.description
                 event[start_datetime] = eventData.startDatetime
                 event[end_datetime] = eventData.endDatetime
@@ -194,13 +194,30 @@ fun Route.eventRoutes() {
                 event[creator_id] = eventData.creatorID.trim('"')
             }
 
+            // Add the creator to the event_participants
+            Event_Participants.insert {
+                it[event_id] = eventData.eventID
+                it[user_id] = eventData.creatorID.trim('"')
+                it[cost_percentage] = null // or any default value
+            }
+
             print("ADDING EVENT ---------------------")
             print(eventData)
 
             val participantsNames = eventData.participants
 
+            // Get the creator's name
+            val creatorName = Users.select { Users.userID eq eventData.creatorID.trim('"') }
+                .map { it[Users.name] }
+                .firstOrNull()
+
             // obtain each participant's user_id and add them to the event if exists
             for (participantName in participantsNames) {
+                // Skip the iteration if the participantName is the creator
+                if (participantName == creatorName) {
+                    continue
+                }
+
                 val user_id = Users.select { Users.name eq participantName }
                     .map { it[Users.userID] }
                     .firstOrNull()
