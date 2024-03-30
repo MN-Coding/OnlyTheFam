@@ -259,7 +259,7 @@ fun EditEventDetails(
     editedDescription: MutableState<String>,
     allergies: MutableState<List<String>>
 ) {
-    Text(text = "Description:", style = MaterialTheme.typography.body1)
+    Text(text = "Description:", style = MaterialTheme.typography.body1, fontWeight = FontWeight.Bold)
     TextField(
         value = editedDescription.value,
         onValueChange = { editedDescription.value = it }
