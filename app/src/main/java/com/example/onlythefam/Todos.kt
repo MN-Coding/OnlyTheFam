@@ -52,8 +52,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.navigation.NavController
+import com.example.onlythefam.ui.theme.Blue200
 import io.ktor.client.request.delete
 import io.ktor.client.request.setBody
 import kotlinx.coroutines.launch
@@ -133,10 +135,11 @@ fun ExpandableCard(
         modifier = Modifier
             .padding(10.dp)
             .fillMaxWidth(),
-        backgroundColor = MaterialTheme.colors.surface,
+        backgroundColor = Blue200,
         shape = RoundedCornerShape(16.dp),
         elevation = 8.dp,
-        border = BorderStroke(1.dp, Color.Gray)
+        border = BorderStroke(1.dp, Color.Gray),
+        contentColor = Color.White,
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -148,7 +151,8 @@ fun ExpandableCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.body1,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    fontWeight = FontWeight.Bold
                 )
                 IconButton(onClick = onExpand) {
                     Icon(

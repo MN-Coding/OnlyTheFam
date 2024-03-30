@@ -228,13 +228,14 @@ fun AddEvent(navController: NavController) {
 
     Scaffold(
         topBar = {
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "Add Event",
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    style = TextStyle(fontSize = 36.sp),
-                    modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                    style = TextStyle(fontSize = 36.sp)
                 )
             }
         }
@@ -244,7 +245,7 @@ fun AddEvent(navController: NavController) {
                 .padding(20.dp)
                 .verticalScroll(scrollState, enabled = true)
         ) {
-            EditableTextField(fieldName = "Event Name", fieldVal = eventName, onChange = { updated -> eventName = updated })
+            EditableTextField(fieldName = "Event Name:", fieldVal = eventName, onChange = { updated -> eventName = updated })
 
             Text("Start Time:", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -259,7 +260,7 @@ fun AddEvent(navController: NavController) {
                 }
             )
 
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(12.dp))
 
             Text("End Time:", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -274,7 +275,7 @@ fun AddEvent(navController: NavController) {
                 }
             )
 
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(12.dp))
 
             Text("Location:", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -289,7 +290,7 @@ fun AddEvent(navController: NavController) {
                 }
             )
 
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(12.dp))
 
             Text("Share With: (Select one or more)", fontWeight = FontWeight.Bold)
             MultiSelectDropdown(
@@ -298,7 +299,10 @@ fun AddEvent(navController: NavController) {
                 onSelectionChange = onShareWithChange
             )
 
-            EditableTextField(fieldName = "Description", fieldVal = description, onChange = { updated -> description = updated })
+            Spacer(Modifier.height(12.dp))
+            EditableTextField(fieldName = "Description:", fieldVal = description, onChange = { updated -> description = updated })
+
+            Spacer(Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Button(onClick = { navController.navigate("todo_event_screen") }) {
