@@ -273,11 +273,15 @@ fun Route.eventRoutes() {
         val id = eventInfo.eventID
         val newDescription = eventInfo.description
         val newLocation = eventInfo.location
+        val newStartTime = eventInfo.startDatetime
+        val newEndTime = eventInfo.endDatetime
 
         val updatedEntries = transaction {
             Events.update({ Events.event_id eq id }){
                 it[description] = newDescription
                 it[location] = newLocation
+                it[start_datetime] = newStartTime
+                it[end_datetime] = newEndTime
             }
         }
 

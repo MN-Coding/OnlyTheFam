@@ -1,6 +1,8 @@
 package com.example.onlythefam
 
 import android.app.Activity
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Build
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -52,6 +54,7 @@ import java.net.URLEncoder
 import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextField
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -69,6 +72,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -77,6 +81,8 @@ fun EventDetails(navController: NavController, eventId: String) {
     var inEditMode by remember { mutableStateOf(false) }
     val editedDescription = remember { mutableStateOf("") }
     val editedLocation = remember { mutableStateOf("") }
+    val editedStartTime = remember { mutableStateOf("") }
+    val editedEndTime = remember { mutableStateOf("") }
     val allergies = remember { mutableStateOf<List<String>>(listOf()) }
 
     val coroutineScope = rememberCoroutineScope()
@@ -85,6 +91,8 @@ fun EventDetails(navController: NavController, eventId: String) {
         event.value = getEventById(eventId)
         editedDescription.value = event.value?.description ?: ""
         editedLocation.value = event.value?.location ?: ""
+        editedStartTime.value = event.value?.startDatetime ?: ""
+        editedEndTime.value = event.value?.endDatetime ?: ""
         allergies.value = getParticipantAllergies(eventId)
     }
 
@@ -114,11 +122,11 @@ fun EventDetails(navController: NavController, eventId: String) {
                         Text("Edit Event Details")
                     }
                 } else {
-                    EditEventDetails(eventDetails, editedDescription, editedLocation, allergies)
+                    EditEventDetails(eventDetails, editedDescription, editedLocation, editedStartTime, editedEndTime, allergies)
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = { inEditMode = !inEditMode;
-                            updateEvent(eventDetails, editedDescription.value, editedLocation.value, coroutineScope);
+                            updateEvent(eventDetails, editedDescription.value, editedLocation.value, editedStartTime.value, editedEndTime.value, coroutineScope);
                                   navController.navigate("events")},
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
@@ -139,7 +147,14 @@ fun EventDetails(navController: NavController, eventId: String) {
     }
 }
 
-private fun updateEvent(eventDetails: EventResponse, newDescription: String, newLocation: String, coroutineScope: CoroutineScope) {
+private fun updateEvent(
+    eventDetails: EventResponse,
+    newDescription: String,
+    newLocation: String,
+    newStartTime: String,
+    newEndTime: String,
+    coroutineScope: CoroutineScope
+) {
     coroutineScope.launch {
         val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateEvent"
         val client = HttpClient(CIO) {
@@ -151,7 +166,7 @@ private fun updateEvent(eventDetails: EventResponse, newDescription: String, new
             client.put(userEndpoint) {
                 contentType(ContentType.Application.Json)
                 setBody(Event(eventDetails.eventID, "", newDescription,
-                    "", "", newLocation, ""))
+                    newStartTime, newEndTime, newLocation, ""))
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -278,8 +293,32 @@ fun EditEventDetails(
     eventDetails: EventResponse,
     editedDescription: MutableState<String>,
     editedLocation: MutableState<String>,
+    editedStartTime: MutableState<String>,
+    editedEndTime: MutableState<String>,
     allergies: MutableState<List<String>>
 ) {
+    var startTime by remember { mutableStateOf(LocalDateTime.now()) }
+    var endTime by remember { mutableStateOf(LocalDateTime.now().plusHours(1)) }
+    val context = LocalContext.current
+    fun updateStartTime(year: Int, month: Int, day: Int, hour: Int, minute: Int) {
+        startTime = LocalDateTime.of(year, month + 1, day, hour, minute)
+    }
+
+    // Show day + time picker
+    fun showDateTimePicker() {
+        val currentDateTime = Calendar.getInstance()
+        val startYear = currentDateTime.get(Calendar.YEAR)
+        val startMonth = currentDateTime.get(Calendar.MONTH)
+        val startDay = currentDateTime.get(Calendar.DAY_OF_MONTH)
+        val startHour = currentDateTime.get(Calendar.HOUR_OF_DAY)
+        val startMinute = currentDateTime.get(Calendar.MINUTE)
+
+        DatePickerDialog(context, { _, year, monthOfYear, dayOfMonth ->
+            TimePickerDialog(context, { _, hourOfDay, minute ->
+                updateStartTime(year, monthOfYear, dayOfMonth, hourOfDay, minute)
+            }, startHour, startMinute, false).show()
+        }, startYear, startMonth, startDay).show()
+    }
     Text(text = "Description:", style = MaterialTheme.typography.body1, fontWeight = FontWeight.Bold)
     TextField(
         value = editedDescription.value,
@@ -287,51 +326,34 @@ fun EditEventDetails(
     )
     Spacer(Modifier.height(12.dp))
     val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy h:mma")
-    Row(
-        modifier = Modifier.padding(top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Filled.AccessTime, contentDescription = "Time", modifier = Modifier.size(24.dp))
-        Spacer(Modifier.width(4.dp))
-        Text(
-            text = "Start: ",
-            style = MaterialTheme.typography.body1,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = LocalDateTime.parse(
-                eventDetails.startDatetime,
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            ).format(
-                formatter
-            ),
-            style = MaterialTheme.typography.body1
-        )
-    }
+    Text("Start Time:", fontWeight = FontWeight.Bold)
+    OutlinedTextField(
+        value = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+        onValueChange = { },
+        modifier = Modifier.fillMaxWidth(),
+        readOnly = true,
+        trailingIcon = {
+            IconButton(onClick = { showDateTimePicker() }) {
+                Icon(Icons.Filled.DateRange, contentDescription = "Select Start Time")
+            }
+        }
+    )
     Spacer(Modifier.height(12.dp))
-    Row(
-        modifier = Modifier.padding(top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Filled.AccessTime, contentDescription = "Time", modifier = Modifier.size(24.dp))
-        Spacer(Modifier.width(4.dp))
-        Text(
-            text = "End: ",
-            style = MaterialTheme.typography.body1,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = LocalDateTime.parse(
-                eventDetails.endDatetime,
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            ).format(
-                formatter
-            ),
-            style = MaterialTheme.typography.body1
-        )
-    }
+    Text("End Time:", fontWeight = FontWeight.Bold)
+    OutlinedTextField(
+        value = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+        onValueChange = { },
+        modifier = Modifier.fillMaxWidth(),
+        readOnly = true,
+        trailingIcon = {
+            IconButton(onClick = { showDateTimePicker() }) {
+                Icon(Icons.Filled.DateRange, contentDescription = "Select End Time")
+            }
+        }
+    )
+    editedStartTime.value = startTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    editedEndTime.value = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
     Spacer(Modifier.height(12.dp))
-    val context = LocalContext.current
     // Initialize Places if not already done
     if (!Places.isInitialized()) {
         Places.initialize(context, context.getString(R.string.google_maps_key))
@@ -397,19 +419,6 @@ fun EditEventDetails(
             style = MaterialTheme.typography.body1
         )
     }
-    Spacer(Modifier.height(12.dp))
-    val address = eventDetails.location
-    val encodedAddress = URLEncoder.encode(address, "UTF-8")
-    val mapUrl =
-        "https://maps.googleapis.com/maps/api/staticmap?center=$encodedAddress&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C$encodedAddress&key=AIzaSyCg28OjKgjh8mYsAlrtDhtXF-0L2QMH1_Q"
-    Image(
-        painter = rememberAsyncImagePainter(mapUrl),
-        contentDescription = "Event Location Map",
-        modifier = Modifier
-            .padding(top = 16.dp)
-            .fillMaxWidth(),
-        contentScale = ContentScale.Crop
-    )
 }
 
 
