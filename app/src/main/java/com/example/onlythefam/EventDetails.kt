@@ -50,8 +50,14 @@ import androidx.compose.material.Button
 import androidx.compose.material.TextField
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -62,6 +68,8 @@ fun EventDetails(navController: NavController, eventId: String) {
     var inEditMode by remember { mutableStateOf(false) }
     val editedDescription = remember { mutableStateOf("") }
     val allergies = remember { mutableStateOf<List<String>>(listOf()) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(eventId) {
         event.value = getEventById(eventId)
@@ -98,7 +106,7 @@ fun EventDetails(navController: NavController, eventId: String) {
                     EditEventDetails(eventDetails, editedDescription, allergies)
                     Spacer(Modifier.height(12.dp))
                     Button(
-                        onClick = { inEditMode = !inEditMode },
+                        onClick = { inEditMode = !inEditMode; updateEventDescription(eventDetails, editedDescription.value, coroutineScope) },
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                     {
@@ -106,6 +114,28 @@ fun EventDetails(navController: NavController, eventId: String) {
                     }
                 }
             }
+        }
+    }
+}
+
+private fun updateEventDescription(eventDetails: EventResponse, newDescription: String, coroutineScope: CoroutineScope) {
+    coroutineScope.launch {
+        val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateEventDescription"
+        val client = HttpClient(CIO) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+        try {
+            client.put(userEndpoint) {
+                contentType(ContentType.Application.Json)
+                setBody(Event(eventDetails.eventID, "", newDescription,
+                    "", "", "", ""))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            client.close()
         }
     }
 }
