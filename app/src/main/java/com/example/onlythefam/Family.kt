@@ -40,7 +40,8 @@ data class FamilyMember(
     val email: String,
     val bloodType: String,
     val dob: String,
-    val familyID: String
+    val familyID: String,
+    val otherHealthInformation: String
 )
 
 @RequiresApi(Build.VERSION_CODES.O)@Composable
@@ -155,6 +156,7 @@ fun FamilyMemberCard(member: FamilyMember) {
             Text(text = "Birthday: ${member.dob}", style = MaterialTheme.typography.body1)
             Text(text = "Email: ${member.email}", style = MaterialTheme.typography.body1)
             Text(text = "Blood Type: ${member.bloodType}", style = MaterialTheme.typography.body1)
+            Text(text = "Other health information: ${member.otherHealthInformation}", style = MaterialTheme.typography.body1)
         }
     }
 }
