@@ -4,6 +4,7 @@ import FamilyPage
 import TodoEventScreen
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -25,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.onlythefam.GlobalVariables.userId
 import java.sql.*
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -160,12 +162,18 @@ object GlobalVariables {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {
-    val navController = rememberNavController()
     val loginController = rememberNavController()
 
     val logout = {
-        loginController.navigate("login"){
-            popUpTo("login"){ inclusive = true }
+        Log.d("Navigation", "Starting logout process")
+        userId = null
+        Log.d("Logout", "User ID cleared")
+        loginController.navigate("login") {
+            popUpTo(loginController.graph.startDestinationId)
+            {
+                inclusive = false
+            }
+            Log.d("Navigation", "Navigated to login")
         }
     }
 
@@ -178,10 +186,11 @@ fun App() {
                 SignUpFlow({loginController.navigate("home") }, {loginController.navigate("login") })
             }
             composable("home") {
+                val mainNavController = rememberNavController()
                 Scaffold(
-                    bottomBar = { BottomNavigation(navController = navController) }
+                    bottomBar = { BottomNavigation(navController = mainNavController) }
                 ) {
-                    NavigationGraph(navController = navController, logoutProcess = logout)
+                    NavigationGraph(navController = mainNavController, logoutProcess = logout)
                 }
             }
         }
