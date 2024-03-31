@@ -35,6 +35,16 @@ data class UserInfo(
     val familyID: String
 )
 
+@Serializable
+data class FamilyInfo(
+    val name: String,
+    val email: String,
+    val bloodType: String,
+    val dob: String,
+    val familyID: String,
+    val otherHealthInformation: String
+)
+
 fun Route.userRoutes() {
 
     put("/updateBloodType"){
@@ -240,12 +250,13 @@ fun Route.userRoutes() {
                 if (familyId != null) {
                     Users.selectAll().where { Users.familyId eq familyId }
                         .map { row ->
-                            UserInfo(
+                            FamilyInfo(
                                 name = row[Users.name],
                                 email = row[Users.email],
                                 bloodType = row[Users.bloodType],
                                 dob = row[Users.dob].toString(),
-                                familyID = row[Users.familyId]
+                                familyID = row[Users.familyId],
+                                otherHealthInformation = row[Users.otherHealth]
                             )
                         }
                 } else {

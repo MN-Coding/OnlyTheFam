@@ -59,12 +59,21 @@ fun Route.authRoutes() {
         val dob = LocalDate.parse(signupParams.dobstr)
 
         var userID: String
+        var familyID: String = signupParams.familyId
 
         do {
             userID = UUID.randomUUID().toString()
         } while (transaction {
             Users.select { Users.userID eq userID }.count() > 0
         })
+
+        if (signupParams.startNewFamily) {
+            do {
+                familyID = UUID.randomUUID().toString().substring(0, 8)
+            } while (transaction {
+                Users.select { Users.familyId eq familyID }.count() > 0
+            })
+        }
 
         try {
             verifyParams(signupParams)
@@ -74,7 +83,7 @@ fun Route.authRoutes() {
                     row[name] = signupParams.name
                     row[email] = signupParams.email
                     row[Users.dob] = dob
-                    row[familyId] = signupParams.familyId
+                    row[familyId] = familyID
                     row[password] = signupParams.password
                     row[bloodType] = signupParams.bloodType
                     row[otherHealth] = signupParams.otherHealth
