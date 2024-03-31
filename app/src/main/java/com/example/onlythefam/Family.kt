@@ -87,6 +87,7 @@ fun FamilyPage(navController: NavController) {
                 familyMembers!!.forEach { member ->
                     FamilyMemberCard(member = member)
                 }
+                Spacer(Modifier.height(100.dp))
             }
         } else {
             Text("No family members found.")

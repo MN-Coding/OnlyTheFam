@@ -313,7 +313,7 @@ fun AddTodo(navController: NavController) {
             Spacer(Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = { navController.navigate("todo_event_screen") }) {
+                Button(onClick = { navController.navigateUp() }) {
                     Text("Cancel")
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -331,7 +331,7 @@ fun AddTodo(navController: NavController) {
                             GlobalVariables.userId!!.toString()
                         )
                         if (isSuccess) {
-                            navController.navigate("todo_event_screen")
+                            navController.navigateUp()
                         }
                     }
                 }) {

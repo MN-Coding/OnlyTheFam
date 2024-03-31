@@ -217,6 +217,10 @@ fun AddEvent(navController: NavController) {
         startTime = LocalDateTime.of(year, month + 1, day, hour, minute)
     }
 
+    fun updateEndTime(year: Int, month: Int, day: Int, hour: Int, minute: Int) {
+        endTime = LocalDateTime.of(year, month + 1, day, hour, minute)
+    }
+
     // Show day + time picker
     fun showDateTimePicker() {
         val currentDateTime = Calendar.getInstance()
@@ -226,11 +230,26 @@ fun AddEvent(navController: NavController) {
         val startHour = currentDateTime.get(Calendar.HOUR_OF_DAY)
         val startMinute = currentDateTime.get(Calendar.MINUTE)
 
-        DatePickerDialog(context, { _, year, monthOfYear, dayOfMonth ->
-            TimePickerDialog(context, { _, hourOfDay, minute ->
+        DatePickerDialog(context, R.style.DialogTheme, { _, year, monthOfYear, dayOfMonth ->
+            TimePickerDialog(context, R.style.DialogTheme, { _, hourOfDay, minute ->
                 updateStartTime(year, monthOfYear, dayOfMonth, hourOfDay, minute)
             }, startHour, startMinute, false).show()
         }, startYear, startMonth, startDay).show()
+    }
+
+    fun showDateTimeEndPicker() {
+        val currentDateTime = Calendar.getInstance()
+        val endYear = currentDateTime.get(Calendar.YEAR)
+        val endMonth = currentDateTime.get(Calendar.MONTH)
+        val endDay = currentDateTime.get(Calendar.DAY_OF_MONTH)
+        val endHour = currentDateTime.get(Calendar.HOUR_OF_DAY)
+        val endMinute = currentDateTime.get(Calendar.MINUTE)
+
+        DatePickerDialog(context, R.style.DialogTheme, { _, year, monthOfYear, dayOfMonth ->
+            TimePickerDialog(context, R.style.DialogTheme, { _, hourOfDay, minute ->
+                updateEndTime(year, monthOfYear, dayOfMonth, hourOfDay, minute)
+            }, endHour, endMinute, false).show()
+        }, endYear, endMonth, endDay).show()
     }
 
     Scaffold(
@@ -276,7 +295,7 @@ fun AddEvent(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
                 trailingIcon = {
-                    IconButton(onClick = { showDateTimePicker() }) {
+                    IconButton(onClick = { showDateTimeEndPicker() }) {
                         Icon(Icons.Filled.DateRange, contentDescription = "Select End Time")
                     }
                 }
@@ -312,7 +331,7 @@ fun AddEvent(navController: NavController) {
             Spacer(Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                Button(onClick = { navController.navigate("todo_event_screen") }) {
+                Button(onClick = { navController.navigateUp()}) {
                     Text("Cancel")
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -326,7 +345,8 @@ fun AddEvent(navController: NavController) {
                         val success = submitEvent(eventName, description, startTimeFormatted, endTimeFormatted, location, shareWith)
                         if (success) {
                             println("[SUCCESSFUL] SUBMITTING EVENT")
-                            navController.navigate("events")
+//                            navController.navigate("events")
+                            navController.navigateUp()
 
                         } else {
                             println("[FAILED] SUBMITTING EVENT")
