@@ -2,6 +2,7 @@ package com.example.routes
 
 import com.example.data.model.AddEventReq
 import com.example.data.model.Event
+import com.example.data.model.UserPersonal
 import com.example.data.schema.Allergies
 import com.example.data.schema.Event_Participants
 import com.example.data.schema.Events
@@ -16,14 +17,17 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 fun Route.eventRoutes() {
 
@@ -182,7 +186,7 @@ fun Route.eventRoutes() {
         transaction {
             Events.insert { event ->
                 event[event_id] = eventData.eventID
-                event[name] = eventData .name
+                event[name] = eventData.name
                 event[description] = eventData.description
                 event[start_datetime] = eventData.startDatetime
                 event[end_datetime] = eventData.endDatetime
@@ -190,13 +194,30 @@ fun Route.eventRoutes() {
                 event[creator_id] = eventData.creatorID.trim('"')
             }
 
+            // Add the creator to the event_participants
+            Event_Participants.insert {
+                it[event_id] = eventData.eventID
+                it[user_id] = eventData.creatorID.trim('"')
+                it[cost_percentage] = null // or any default value
+            }
+
             print("ADDING EVENT ---------------------")
             print(eventData)
 
             val participantsNames = eventData.participants
 
+            // Get the creator's name
+            val creatorName = Users.select { Users.userID eq eventData.creatorID.trim('"') }
+                .map { it[Users.name] }
+                .firstOrNull()
+
             // obtain each participant's user_id and add them to the event if exists
             for (participantName in participantsNames) {
+                // Skip the iteration if the participantName is the creator
+                if (participantName == creatorName) {
+                    continue
+                }
+
                 val user_id = Users.select { Users.name eq participantName }
                     .map { it[Users.userID] }
                     .firstOrNull()
@@ -263,4 +284,30 @@ fun Route.eventRoutes() {
         //call.respond(HttpStatusCode.OK, allAllergies)
 
     }
+
+    put("/updateEvent"){
+        val eventInfo = call.receive<Event>()
+        val id = eventInfo.eventID
+        val newDescription = eventInfo.description
+        val newLocation = eventInfo.location
+        val newStartTime = eventInfo.startDatetime
+        val newEndTime = eventInfo.endDatetime
+
+        val updatedEntries = transaction {
+            Events.update({ Events.event_id eq id }){
+                it[description] = newDescription
+                it[location] = newLocation
+                it[start_datetime] = newStartTime
+                it[end_datetime] = newEndTime
+            }
+        }
+
+        if (updatedEntries > 0){
+            call.respond(HttpStatusCode.OK, "event description updated successfully")
+        }
+        else{
+            call.respond(HttpStatusCode.NotFound, "Event not found")
+        }
+    }
+
 }

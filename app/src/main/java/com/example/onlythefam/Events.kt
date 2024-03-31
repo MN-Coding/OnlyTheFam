@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
+import com.example.onlythefam.ui.theme.Blue200
 import com.example.onlythefam.ui.theme.Blue700
 
 @Serializable
@@ -102,7 +103,7 @@ fun EventCard(eventUiModel: EventUiModel, navController: NavController) {
             .padding(10.dp)
             .fillMaxWidth()
             .clickable { navController.navigate("eventDetails/${eventUiModel.eventResponse.eventID}") },
-        backgroundColor = Blue700,
+        backgroundColor = Blue200,
         shape = RoundedCornerShape(16.dp),
         elevation = 8.dp,
         border = BorderStroke(1.dp, Color.Gray),
