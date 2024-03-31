@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,28 +46,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.onlythefam.network.UserNetworkFacade
 import com.example.onlythefam.ui.theme.Blue500
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.put
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.toLocalDate
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.time.LocalDate
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -110,6 +93,7 @@ fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
         }
     ){
 
+        val userNetworkFacade = UserNetworkFacade()
         var loading by remember { mutableStateOf(true) }
         var name by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("") }
@@ -119,12 +103,13 @@ fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
         var allergies by remember { mutableStateOf("") }
         val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
         var otherHealth by remember { mutableStateOf("") }
+
         LaunchedEffect(uid){
             if (uid.isNotEmpty()){
                 coroutineScope.launch{
-                    val userInfoDelegate = async{ getUserInfo(uid) }
-                    val allergiesDelegate = async{ getAllergies(uid) }
-                    val healthDelegate = async{ getHealthFacts(uid) }
+                    val userInfoDelegate = async{ userNetworkFacade.getUserInfo(uid) }
+                    val allergiesDelegate = async{ userNetworkFacade.getUserAllergies(uid) }
+                    val healthDelegate = async{ userNetworkFacade.getUserHealthFacts(uid) }
 
                     val userInfo = userInfoDelegate.await()
                     allergies = allergiesDelegate.await()
@@ -151,7 +136,7 @@ fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
                     fieldVal = name,
                     onChange = {
                         updatedName -> name = updatedName
-                        updateName(uid, updatedName, coroutineScope)
+                        userNetworkFacade.updateUserName(uid, updatedName, coroutineScope)
                     })
                 DateField(
                     uid = uid,
@@ -171,20 +156,24 @@ fun SettingsPage(onGoBack: () -> Unit, onLogout: () -> Unit) {
                     placeholder = bloodType
                 ) { newBloodType ->
                     bloodType = newBloodType
-                    changeBloodType(uid, newBloodType, coroutineScope)
+                    userNetworkFacade.changeUserBloodType(uid, newBloodType, coroutineScope)
                 }
                 AddItemDialogListField(
                     fieldName = "Allergies",
-                    initialFieldVal = allergies, //comma-separated string
-                    onNewItemsAdded = { newAllergies ->
-                        // Update the allergies with new entries
-                        if (allergies.isNotEmpty()) {
-                            allergies += ", "
-                        }
-                        allergies += newAllergies.joinToString(", ")
-                        addAllergies(uid, newAllergies, coroutineScope) //post new allergies in backend
+                    initialFieldVal = allergies
+                ) //comma-separated string
+                { newAllergies ->
+                    // Update the allergies with new entries
+                    if (allergies.isNotEmpty()) {
+                        allergies += ", "
                     }
-                )
+                    allergies += newAllergies.joinToString(", ")
+                    userNetworkFacade.addUserAllergies(
+                        uid,
+                        newAllergies,
+                        coroutineScope
+                    ) //post new allergies in backend
+                }
                 StaticUserProfileField(fieldName = "Other Health Info", fieldVal = otherHealth)
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
@@ -297,10 +286,13 @@ fun ProfileDropdownMenu(menuName: String, menuOptions: List<String>, placeholder
 @Composable
 fun DateField(uid: String, fieldName: String, dateVal: String, onChange: (String) -> Unit, coroutineScope: CoroutineScope, context: Context){
 
+    val userNetworkFacade = UserNetworkFacade()
+
     fun updateDate(year: Int, month: Int, day: Int) {
         val newDateVal = LocalDate.of(year, month + 1, day).toString()
         onChange(newDateVal)
-        updateDob(uid, newDateVal, coroutineScope)
+        userNetworkFacade.updateUserDob(uid, newDateVal, coroutineScope)
+
     }
 
     // Show day + time picker
@@ -338,187 +330,4 @@ fun DateField(uid: String, fieldName: String, dateVal: String, onChange: (String
         }
     }
     Spacer(modifier = Modifier.height(18.dp))
-}
-
-@Serializable
-data class UserInfo(
-    val name: String,
-    val email: String,
-    val bloodType: String,
-    val dob: String,
-    val familyID: String
-)
-
-private suspend fun getUserInfo(userId: String): UserInfo? {
-    val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json()
-        }
-    }
-
-    return try {
-        val userEndpoint = "http://${GlobalVariables.localIP}:5050/getUserInfo?userID=$userId"
-        val response: HttpResponse = withContext(Dispatchers.IO) {
-            client.get(userEndpoint) {
-                contentType(ContentType.Application.Json)
-            }
-        }
-        if (response.status == HttpStatusCode.OK){
-            Json.decodeFromString<UserInfo>(response.bodyAsText())
-        } else{
-            null
-        }
-
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    } finally {
-        client.close()
-    }
-}
-
-private suspend fun getAllergies(userId: String) : String {
-    val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json()
-        }
-    }
-
-    return try {
-        val userEndpoint = "http://${GlobalVariables.localIP}:5050/getAllergies?userID=$userId"
-        val response: HttpResponse = withContext(Dispatchers.IO) {
-            client.get(userEndpoint) {
-                contentType(ContentType.Application.Json)
-            }
-        }
-        val jsonArrayString = response.bodyAsText()
-        val allergiesList: List<String> = Json.decodeFromString(jsonArrayString)
-        allergiesList.joinToString(separator = ", ")
-    } catch (e: Exception) {
-        e.printStackTrace()
-        ""
-    } finally {
-        client.close()
-    }
-}
-
-private suspend fun getHealthFacts(userId: String) : String {
-    val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json()
-        }
-    }
-
-    return try {
-        val userEndpoint = "http://${GlobalVariables.localIP}:5050/getHealthInfo?userID=$userId"
-        val response: HttpResponse = withContext(Dispatchers.IO) {
-            client.get(userEndpoint) {
-                contentType(ContentType.Application.Json)
-            }
-        }
-        val jsonArrayString = response.bodyAsText()
-        val allergiesList: List<String> = Json.decodeFromString(jsonArrayString)
-        allergiesList.joinToString(separator = ", ")
-    } catch (e: Exception) {
-        e.printStackTrace()
-        ""
-    } finally {
-        client.close()
-    }
-}
-
-@Serializable
-data class UserPersonal(val userID: String, val name: String, val dobstr: String)
-
-private fun updateName(userId: String, name: String, coroutineScope: CoroutineScope) {
-    coroutineScope.launch {
-        val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateName"
-        val client = HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json()
-            }
-        }
-        try {
-            client.put(userEndpoint) {
-                contentType(ContentType.Application.Json)
-                setBody(UserPersonal(userId, name, ""))
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            client.close()
-        }
-    }
-}
-
-private fun updateDob(userId: String, dob: String, coroutineScope: CoroutineScope){
-    Log.d("Server Call", "Update Dob")
-    coroutineScope.launch {
-        val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateDob"
-        val client = HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json()
-            }
-        }
-        try {
-            client.put(userEndpoint) {
-                contentType(ContentType.Application.Json)
-                setBody(UserPersonal(userId, "", dob))
-            }
-            Log.d("Server Call", "Put @ updateDob")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            client.close()
-        }
-    }
-}
-
-@Serializable
-data class UserAllergies(val userID: String, val allergies: List<String>)
-
-private fun addAllergies(userId: String, allergiesList: List<String>, coroutineScope: CoroutineScope){
-    coroutineScope.launch {
-        val userEndpoint = "http://${GlobalVariables.localIP}:5050/addAllergies"
-        val client = HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json()
-            }
-        }
-
-        try {
-            client.post(userEndpoint) {
-                contentType(ContentType.Application.Json)
-                setBody(UserAllergies(userId, allergiesList))
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        client.close()
-    }
-}
-
-@Serializable
-data class UserBloodType(val userID: String, val bloodType: String)
-
-private fun changeBloodType(userId: String, bloodType: String, coroutineScope: CoroutineScope){
-    coroutineScope.launch {
-        val userEndpoint = "http://${GlobalVariables.localIP}:5050/updateBloodType"
-        val client = HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json()
-            }
-        }
-        try {
-            client.put(userEndpoint) {
-                contentType(ContentType.Application.Json)
-                setBody(UserBloodType(userId, bloodType))
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        finally {
-            client.close()
-        }
-    }
 }

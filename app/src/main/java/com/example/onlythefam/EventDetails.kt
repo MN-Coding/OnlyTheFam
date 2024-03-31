@@ -9,67 +9,71 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import java.net.URLEncoder
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.TextField
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.widget.Autocomplete
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
-import io.ktor.client.request.put
-import io.ktor.client.request.setBody
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -77,6 +81,7 @@ import java.util.Calendar
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EventDetails(navController: NavController, eventId: String) {
+    var loading by remember { mutableStateOf(true) }
     val event = remember { mutableStateOf<EventResponse?>(null) }
     var inEditMode by remember { mutableStateOf(false) }
     val editedDescription = remember { mutableStateOf("") }
@@ -84,7 +89,6 @@ fun EventDetails(navController: NavController, eventId: String) {
     val editedStartTime = remember { mutableStateOf("") }
     val editedEndTime = remember { mutableStateOf("") }
     val allergies = remember { mutableStateOf<List<String>>(listOf()) }
-
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(eventId) {
@@ -93,7 +97,11 @@ fun EventDetails(navController: NavController, eventId: String) {
         editedLocation.value = event.value?.location ?: ""
         editedStartTime.value = event.value?.startDatetime ?: ""
         editedEndTime.value = event.value?.endDatetime ?: ""
-        allergies.value = getParticipantAllergies(eventId)
+        coroutineScope.launch {
+            val allergiesDelegate = async{getParticipantAllergies(eventId)}
+            allergies.value = allergiesDelegate.await()
+            loading = false
+        }
     }
 
     Scaffold(
@@ -110,7 +118,10 @@ fun EventDetails(navController: NavController, eventId: String) {
         }
     ) { innerPadding ->
         event.value?.let { eventDetails ->
-            Column(modifier = Modifier.padding(innerPadding).padding(16.dp)) {
+            if (!loading){
+            Column(modifier = Modifier
+                .padding(innerPadding)
+                .padding(16.dp)) {
                 if (!inEditMode) {
                     StaticEventDetails(eventDetails, allergies)
                     Spacer(Modifier.height(12.dp))
@@ -141,6 +152,14 @@ fun EventDetails(navController: NavController, eventId: String) {
                     {
                         Text("Cancel")
                     }
+                }
+            }
+            } else{
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    CircularProgressIndicator()
                 }
             }
         }
