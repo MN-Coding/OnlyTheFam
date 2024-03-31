@@ -45,6 +45,7 @@ import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.navigation.NavController
+import getFamilyMembers
 import java.util.*
 import io.ktor.client.*
 import io.ktor.client.call.body
@@ -183,6 +184,8 @@ fun AddTodo(navController: NavController) {
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
 
+    val uid = GlobalVariables.userId?.replace("\"", "") ?: ""
+
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -194,16 +197,21 @@ fun AddTodo(navController: NavController) {
     var showEventDropdown by remember { mutableStateOf(false) }
     var showUsernameDropdown by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = Unit) {
-        coroutineScope.launch {
-            try {
-                val events = getAllEvents()
-                eventOptions = events.map { it }
-                val usernames = getAllUsernames()
-                usernameOptions = usernames.map { it }
-            } catch (e: Exception) {
-                Log.e("AddTodo", "Exception during fetching all events", e)
-                eventOptions = listOf("Error fetching events")
+    LaunchedEffect(uid) {
+        if (uid.isNotEmpty()) {
+            coroutineScope.launch {
+                try {
+                    val events = getEventsByUserId(uid)
+                    eventOptions = events.map { it.name }
+                    eventOptions += ""
+                    val usernames = getFamilyMembers(uid)
+                    if (usernames != null) {
+                        usernameOptions = usernames.map { it.name }
+                    }
+                } catch (e: Exception) {
+                    Log.e("AddTodo", "Exception during fetching all events", e)
+                    eventOptions = listOf("Error fetching events")
+                }
             }
         }
     }

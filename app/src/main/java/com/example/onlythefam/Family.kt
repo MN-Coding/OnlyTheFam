@@ -94,7 +94,7 @@ fun FamilyPage(navController: NavController) {
     }
 }
 
-private suspend fun getFamilyMembers(userId: String): List<FamilyMember>? {
+suspend fun getFamilyMembers(userId: String): List<FamilyMember>? {
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json()

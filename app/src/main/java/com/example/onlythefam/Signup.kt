@@ -519,7 +519,9 @@ fun SignUpPhase2(onNextPhase: () -> Unit, onPreviousPhase: () -> Unit, c: Creden
                         if (!c.startNewFamily) {
                             checkIfCanJoinFamily(c.familyId, scaffoldState, coroutineScope, onNextPhase)
                         } else {
-                            checkIfCanCreateFamily(c.familyId, scaffoldState, coroutineScope, onNextPhase)
+//                            checkIfCanCreateFamily(c.familyId, scaffoldState, coroutineScope, onNextPhase)
+                            load.value = false
+                            onNextPhase()
                         }
                     }) {
                     Text(text = "Next")
