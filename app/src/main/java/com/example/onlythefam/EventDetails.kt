@@ -332,8 +332,8 @@ fun EditEventDetails(
         val startHour = currentDateTime.get(Calendar.HOUR_OF_DAY)
         val startMinute = currentDateTime.get(Calendar.MINUTE)
 
-        DatePickerDialog(context, { _, year, monthOfYear, dayOfMonth ->
-            TimePickerDialog(context, { _, hourOfDay, minute ->
+        DatePickerDialog(context, R.style.DialogTheme, { _, year, monthOfYear, dayOfMonth ->
+            TimePickerDialog(context, R.style.DialogTheme, { _, hourOfDay, minute ->
                 updateStartTime(year, monthOfYear, dayOfMonth, hourOfDay, minute)
             }, startHour, startMinute, false).show()
         }, startYear, startMonth, startDay).show()
