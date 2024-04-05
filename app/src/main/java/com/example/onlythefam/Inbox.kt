@@ -37,6 +37,28 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
+// Observer interface
+interface InviteObserver {
+    fun onInviteReceived(invite: InviteResponse)
+}
+
+// Observable class
+class InviteObservable {
+    private val observers = mutableListOf<InviteObserver>()
+
+    fun addObserver(observer: InviteObserver) {
+        observers.add(observer)
+    }
+
+    fun removeObserver(observer: InviteObserver) {
+        observers.remove(observer)
+    }
+
+    fun notifyInviteReceived(invite: InviteResponse) {
+        observers.forEach { it.onInviteReceived(invite) }
+    }
+}
+
 @Serializable
 data class InviteResponse(
     val invite_id: String,
@@ -189,6 +211,18 @@ fun Inbox(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val username = remember { GlobalVariables.username }
     val invitations = remember { mutableStateOf(listOf<InviteResponse>()) }
+
+    val inviteObservable = remember { InviteObservable() }
+    val inviteObserver = object : InviteObserver {
+        override fun onInviteReceived(invite: InviteResponse) {
+            // Handle the new invite here
+            coroutineScope.launch {
+                invitations.value = listOf(invite) + invitations.value
+            }
+        }
+    }
+    inviteObservable.addObserver(inviteObserver)
+
 
     LaunchedEffect(key1 = Unit) {
         coroutineScope.launch {
