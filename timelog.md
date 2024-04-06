@@ -21,16 +21,22 @@
 | 2024/03/03 |         |    4    |        |      |       |         | D3 - Fixed complicated build error                       |
 | 2024/03/03 |         |         |        |      | 1     |         | D3 - Component Diagram                                   |
 | 2024/03/03 |         |         |        | 3    |       |         | Various UI updates to Event Details page                 |
+| 2024/03/15 |   2.5   |         |        | 3    |       |         | Profile: Add New Allergies & Edit Blood type             |
 | 2024/03/19 |         |         |        |      | 1     |         | D4 - Client Server                                       |
 | 2024/03/19 |         |         |        |      |       |    1.5  | D4 - Pipe & Filter                                       |
 | 2024/03/19 |         |    1    |        |      |       |         | D4 - Microservices Architecture                          |
 | 2024/03/22 |         |         |        |      | 8     |         | Completed Signup UI + Server Logic + Homepage Calendar   |
+| 2024/03/28 |   2.5   |         |        |      | 4     |         | Profile: Edit Birthdate, View Health Info from Sign-up   | 
 | 2024/03/29 |         |         |        |      | 4     |         | Modified Homepage UI + Connected Homepage UI to Server   |
 | 2024/03/29 |         |         |        | 7    |       |         | Family members page + fix create event invite bug        |
+| 2024/03/29 |   1.5   |         |        | 7    |       |         | View all event participant allergies'                    |
+| 2024/03/29 |    3    |         |        | 7    |       |         | Fixed account logout logic                               |
 | 2024/03/30 |         |    6    |        |      |       |         | Edit event details screen                                |
 | 2024/03/30 |         |    2    |        |      |       |         | UI improvements for Add Events, Todos, Events            |
+| 2024/03/31 |   2.5   |         |        |      | 4     |         | Implemented Facade Design Pattern                        |
 | 2024/03/31 |         |         |        |      | 4     |         | Bugfixes + Final Touches                                 |
 | 2024/04/05 |         |         |        |      | 3     |         | D6 - Architecture Description                            |
+| 2024/04/05 |    1    |         |        |      |       |         | D6 - Functional Requirements                             |
 | 2024/04/05 |         |    1    |        |      |       |         | D6 - Non-Functional Requirements                         |
 | 2024/04/05 |         |         |        |      | 3     |         | D7 - Demo Video                                          |
-| 2024/04/08 |         |    1    |        |      | 1     |         | D7 - Final Status Report                                 |
+| 2024/04/08 |   0.5   |    1    |        |      | 1     |         | D7 - Final Status Report                                 |
