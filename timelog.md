@@ -41,6 +41,6 @@
 | 2024/04/05 |         |         |        |      | 3     |         | D6 - Architecture Description                            |
 | 2024/04/05 |    1    |         |        |      |       |         | D6 - Functional Requirements                             |
 | 2024/04/05 |         |    1    |        |      |       |         | D6 - Non-Functional Requirements                         |
-| 2024/03/05 |         |         |        |      |       |      3  | D6 - Design patterns : Facade and observer               |
+| 2024/03/05 |         |         |        |      |       |      4  | D6 - Design patterns : Facade and observer               |
 | 2024/04/05 |         |         |        |      | 3     |         | D7 - Demo Video                                          |
 | 2024/04/08 |   0.5   |    1    |        |      | 1     |     0.5 | D7 - Final Status Report                                 |
