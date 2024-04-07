@@ -37,7 +37,7 @@
 | 2024/03/30 |         |    2    |        |      |       |         | UI improvements for Add Events, Todos, Events            |
 | 2024/03/31 |   2.5   |         |        |      | 4     |         | Implemented Facade Design Pattern                        |
 | 2024/03/31 |         |         |        |      | 4     |         | Bugfixes + Final Touches                                 |
-| 2024/03/31 |         |         |        |      |       |     0.5 |  final presentation slides                               |
+| 2024/03/31 |         |         |        |      |       |     1   |  final presentation slides                               |
 | 2024/04/05 |         |         |        |      | 3     |         | D6 - Architecture Description                            |
 | 2024/04/05 |    1    |         |        |      |       |         | D6 - Functional Requirements                             |
 | 2024/04/05 |         |    1    |        |      |       |         | D6 - Non-Functional Requirements                         |
