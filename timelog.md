@@ -14,7 +14,7 @@
 | 2024/03/01 |         |         |        |      |       |      5  | D3 - Todo list frontend                                  |
 | 2024/03/02 |         |         |        |      |       |      3  | D3 - Updated Todo list frontend                          |
 | 2024/03/03 |         |         |        |      | 8     |         | Updated Login Logic (Postgres)                           |
-| 2024/03/03 |         |   0.5   |        | 1    |       |    0.5  | D3 - Presentation                                        |
+| 2024/03/03 |         |   0.5   |        | 1    |       |    1    | D3 - Presentation                                        |
 | 2024/03/03 |    2    |         |        |      |       |         | D3 - Settings Page                                       |
 | 2024/03/03 |         |    6    |        | 14   |       |         | D3 - Add Events feature and Event Details page           |
 | 2024/03/03 |         |    6    |        | 3    |       |         | D3 - Database setup                                      |
